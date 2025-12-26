@@ -28,13 +28,19 @@ class CodeParser:
 
         for item in sorted(current_path.iterdir()):
             if item.is_dir():
-                if item.name.startswith(('.', '__pycache__')):
+                if item.name.startswith(('.', '__pycache__', 'venv', 'node_modules')):
                     continue
-                node["children"].append(self._parse_dir(item))
+                dir_data = self._parse_dir(item)
+                if dir_data["children"]:
+                    node["children"].append(dir_data)
             elif item.suffix == ".py":
-                if item.name == "__init__.py" and current_path != self.root_path:
-                    continue
                 node["children"].append(self._parse_file(item))
+            elif item.suffix in ('.md', '.toml', '.json', '.yaml', '.yml', '.txt'):
+                # Add important non-python files as simple nodes to fill the big picture
+                node["children"].append({
+                    "name": item.name,
+                    "type": "file"
+                })
                 
         return node
 

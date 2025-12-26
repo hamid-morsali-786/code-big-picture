@@ -27,6 +27,8 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+spec-kit-main
+spec-kit-main/
 
 # --------------------------------------------------------------------
 # 2. Virtual Environments (محیط‌های مجازی)

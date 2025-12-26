@@ -6,33 +6,36 @@ class SVGRenderer:
     
     # Modern Professional Palette
     THEME = {
-        "project": {"stroke": "#1a1a1a", "bg": "rgba(26, 26, 26, 0.02)", "text": "#1a1a1a"},
-        "package": {"stroke": "#8B4513", "bg": "rgba(139, 69, 19, 0.05)", "text": "#8B4513"},
-        "directory": {"stroke": "#8B4513", "bg": "rgba(139, 69, 19, 0.05)", "text": "#8B4513"},
-        "module": {"stroke": "#228B22", "bg": "rgba(34, 139, 34, 0.05)", "text": "#228B22"},
-        "class": {"stroke": "#DC143C", "bg": "rgba(220, 20, 60, 0.05)", "text": "#DC143C"},
-        "method": {"stroke": "#800080", "bg": "rgba(128, 0, 128, 0.05)", "text": "#800080"},
-        "function": {"stroke": "#800080", "bg": "rgba(128, 0, 128, 0.05)", "text": "#800080"}
+        "project": {"bg": "#ffffff", "stroke": "#1a1a1b", "text": "#1a1a1b", "icon": "cube"},
+        "package": {"bg": "#f8f9fa", "stroke": "#495057", "text": "#212529", "icon": "package"},
+        "directory": {"bg": "#ffffff", "stroke": "#adb5bd", "text": "#495057", "icon": "folder"},
+        "module": {"bg": "#e7f5ff", "stroke": "#1971c2", "text": "#1864ab", "icon": "file-code"},
+        "class": {"bg": "#f3f0ff", "stroke": "#6741d9", "text": "#5f3dc4", "icon": "box"},
+        "method": {"bg": "#fff0f6", "stroke": "#c2255c", "text": "#a61e4d", "icon": "terminal"},
+        "function": {"bg": "#fff9db", "stroke": "#f08c00", "text": "#e67700", "icon": "terminal"},
+        "file": {"bg": "#f1f3f5", "stroke": "#868e96", "text": "#495057", "icon": "file-text"},
+        "error": {"bg": "#fff5f5", "stroke": "#fa5252", "text": "#c92a2a", "icon": "alert-circle"}
     }
 
-    def __init__(self, data: Dict[str, Any]):
-        self.data = data
-        self.padding = 30
-        self.margin = 20
-        self.header_height = 40
-        self.min_leaf_width = 180
-        self.min_leaf_height = 80
+    def __init__(self, structure: Dict[str, Any]):
+        self.structure = structure
+        self.padding = 15
+        self.margin = 10
+        self.header_height = 35
+        self.min_leaf_width = 120
+        self.max_leaf_width = 350
+        self.min_leaf_height = 42
 
     def render(self) -> str:
-        """Returns complex HTML with Pan/Zoom and Modern Styling."""
-        svg_content, width, height = self._generate_box(self.data)
+        """Returns complex HTML with Icons, Pan/Zoom and High Density."""
+        svg_content, width, height = self._generate_box(self.structure)
         
         return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Code Big Picture 2.0 - {{self.data.get('name', 'Project')}}</title>
+    <title>Code Big Picture V2.2</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
@@ -50,7 +53,7 @@ class SVGRenderer:
             background-color: var(--bg-color);
             font-family: 'Inter', sans-serif;
             color: var(--text-primary);
-            overflow: hidden; /* Hide body scroll for panzoom */
+            overflow: hidden;
             height: 100vh;
             width: 100vw;
         }}
@@ -70,13 +73,8 @@ class SVGRenderer:
             display: flex;
             align-items: center;
             gap: 20px;
-            transition: all 0.3s ease;
         }}
         
-        header:hover {{
-             box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-        }}
-
         .brand {{
             display: flex;
             align-items: center;
@@ -86,7 +84,6 @@ class SVGRenderer:
         h1 {{ margin: 0; font-size: 1.1rem; font-weight: 800; color: var(--text-primary); }}
         .badge {{ font-size: 0.65rem; background: var(--accent); color: white; padding: 3px 8px; border-radius: 12px; font-weight: 600; }}
 
-        /* Search Bar */
         .search-container {{
             position: relative;
             display: flex;
@@ -102,75 +99,24 @@ class SVGRenderer:
             font-family: 'Inter', sans-serif;
             font-size: 0.9rem;
             width: 200px;
-            transition: all 0.2s ease;
             outline: none;
-            color: var(--text-primary);
-        }}
-        
-        #search-input:focus {{
-            background: white;
-            box-shadow: 0 0 0 2px var(--accent);
-            width: 280px;
         }}
         
         .search-icon {{
             position: absolute;
             left: 12px;
             opacity: 0.4;
-            pointer-events: none;
         }}
 
-        #viewport {{
-            width: 100vw;
-            height: 100vh;
-            cursor: grab;
-        }}
-        #viewport:active {{ cursor: grabbing; }}
-
-        .box-rect {{
-            transition: all 0.3s ease;
-            stroke-dasharray: 0;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.02));
-        }}
+        #viewport {{ width: 100vw; height: 100vh; cursor: grab; }}
+        .box-rect {{ transition: all 0.3s ease; }}
         
-        /* Highlighting Logic */
-        .node {{
-            transition: opacity 0.3s ease;
-        }}
-        
-        .node.dimmed {{
-            opacity: 0.15;
-            filter: grayscale(100%);
-        }}
-        
+        .node {{ transition: opacity 0.3s ease; }}
+        .node.dimmed {{ opacity: 0.15; filter: grayscale(100%); }}
         .node.highlighted > .box-rect {{
             stroke: var(--accent) !important;
             stroke-width: 3;
             filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.4));
-        }}
-
-        .node:hover > .box-rect {{
-            stroke-width: 3;
-            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.1));
-            stroke-dasharray: 5;
-            animation: dash 10s linear infinite;
-        }}
-
-        @keyframes dash {{
-            to {{ stroke-dashoffset: -100; }}
-        }}
-
-        text {{
-            font-family: 'Inter', sans-serif;
-            pointer-events: none;
-        }}
-        
-        .type-label {{
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            opacity: 0.5;
-            font-weight: 600;
         }}
 
         .controls {{
@@ -194,17 +140,89 @@ class SVGRenderer:
             align-items: center;
             justify-content: center;
             font-size: 20px;
-            transition: transform 0.2s;
-            color: var(--text-primary);
         }}
-        .btn:hover {{ transform: scale(1.1); background: #f8fafc; }}
+
+        /* Legend Style */
+        .legend {{
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 12px 18px;
+            border-radius: 16px;
+            border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 100;
+        }}
+        
+        .legend-title {{
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #64748b;
+            margin-bottom: 4px;
+        }}
+        
+        .legend-item {{
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #475569;
+        }}
+        
+        .legend-icon {{
+            width: 14px;
+            height: 14px;
+            opacity: 0.7;
+        }}
     </style>
 </head>
 <body>
+    <svg style="display:none">
+        <!-- Project: Full isometric cube -->
+        <symbol id="cube" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+        </symbol>
+        <!-- Package: Stacked layers (Hierarchy) -->
+        <symbol id="package" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+        </symbol>
+        <!-- Folder: Directory container -->
+        <symbol id="folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+        </symbol>
+        <!-- Python Module: File with code tags -->
+        <symbol id="file-code" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <path d="m10 13-2 2 2 2"></path><path d="m14 17 2-2-2-2"></path>
+        </symbol>
+        <!-- Class: Structured box (Blueprint) -->
+        <symbol id="box" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+            <circle cx="12" cy="12" r="3" fill="currentColor" opacity="0.4"></circle>
+        </symbol>
+        <!-- Logic icons unchanged -->
+        <symbol id="terminal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></symbol>
+        <symbol id="file-text" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></symbol>
+        <symbol id="alert-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></symbol>
+    </svg>
+
     <header>
         <div class="brand">
             <h1>Code Big Picture</h1>
-            <div class="badge">V2.1</div>
+            <div class="badge">V2.2</div>
         </div>
         
         <div class="search-container">
@@ -222,6 +240,17 @@ class SVGRenderer:
                 {svg_content}
             </g>
         </svg>
+    </div>
+
+    <div class="legend" id="map-legend">
+        <div class="legend-title">Map Guide / راهنما</div>
+        <div class="legend-item"><svg class="legend-icon"><use href="#cube" /></svg> Project</div>
+        <div class="legend-item"><svg class="legend-icon"><use href="#package" /></svg> Package</div>
+        <div class="legend-item"><svg class="legend-icon"><use href="#folder" /></svg> Directory</div>
+        <div class="legend-item"><svg class="legend-icon"><use href="#file-code" /></svg> Python Module</div>
+        <div class="legend-item"><svg class="legend-icon"><use href="#box" /></svg> Class</div>
+        <div class="legend-item"><svg class="legend-icon"><use href="#terminal" /></svg> Function / Method</div>
+        <div class="legend-item"><svg class="legend-icon"><use href="#file-text" /></svg> Other File</div>
     </div>
 
     <div class="controls">
@@ -362,7 +391,7 @@ class SVGRenderer:
 """
 
     def _generate_box(self, node: Dict[str, Any], depth: int = 0) -> Tuple[str, float, float]:
-        """Generates SVG with a smart stacking/tiling layout."""
+        """Generates SVG with a smart layout and dynamic sizing."""
         import uuid
         node_id = f"node-{uuid.uuid4().hex[:8]}"
         
@@ -373,15 +402,16 @@ class SVGRenderer:
         theme = self.THEME.get(node_type, self.THEME["method"])
         
         if not children:
-            # Leaf node
-            w, h = self.min_leaf_width, self.min_leaf_height
-            # No toggle for leaves
+            # Dynamic Width Calculation for leaf nodes
+            # Roughly 8px per character + icon space + padding
+            estimated_w = (len(name) * 8.5) + 40
+            w = max(self.min_leaf_width, min(self.max_leaf_width, estimated_w))
+            h = self.min_leaf_height
             svg = self._draw_node_rect(name, node_type, theme, w, h, node_id, has_children=False)
             return svg, w, h
 
-        # Layout children
+        # Layout children...
         MAX_ROW_WIDTH = 1200 if depth == 0 else 800
-        
         rows: List[List[Tuple[str, float, float]]] = [[]]
         current_row_w = 0
         
@@ -394,17 +424,14 @@ class SVGRenderer:
                 rows[-1].append((c_svg, c_w, c_h))
                 current_row_w += c_w + self.margin
 
-        # Calculate final dimensions
         row_heights = [max(c[2] for c in row) for row in rows]
         row_widths = [sum(c[1] for c in row) + (len(row)-1)*self.margin for row in rows]
         
         total_width = max(row_widths) + (2 * self.padding)
         total_height = sum(row_heights) + (len(rows)-1)*self.margin + self.header_height + self.padding
         
-        # Draw the node
         content_svg = []
         y_offset = self.header_height
-        
         for i, row in enumerate(rows):
             x_offset = self.padding
             for c_svg, c_w, c_h in row:
@@ -420,24 +447,34 @@ class SVGRenderer:
             </g>
         </g>
         """
-        
         return svg, total_width, total_height
 
     def _draw_node_rect(self, name: str, node_type: str, theme: dict, w: float, h: float, node_id: str, has_children: bool) -> str:
-        """Helper to draw the actual rectangle, labels, and toggle button."""
+        """Helper to draw the rectangle with ICON and Truncated text."""
+        # Truncation logic
+        display_name = name
+        max_chars = int((w - 45) / 8) # Estimated capacity
+        if len(name) > max_chars and max_chars > 3:
+            display_name = name[:max_chars-3] + "..."
+
         toggle_btn = ""
         if has_children:
             toggle_btn = f"""
-            <g class="toggle-btn" onclick="toggleNode('{node_id}')" style="cursor: pointer; opacity: 0.7;">
-                <circle cx="{w - 20}" cy="25" r="10" fill="white" stroke="{theme['stroke']}" stroke-width="1"/>
-                <text x="{w - 20}" y="29" text-anchor="middle" font-size="14" font-weight="bold" fill="{theme['stroke']}" style="pointer-events: none;">-</text>
+            <g class="toggle-btn" onclick="toggleNode('{node_id}')" style="cursor: pointer; opacity: 0.6;">
+                <circle cx="{w - 15}" cy="15" r="7" fill="white" stroke="{theme['stroke']}" stroke-width="1"/>
+                <text x="{w - 15}" y="19" text-anchor="middle" font-size="10" font-weight="bold" fill="{theme['stroke']}" style="pointer-events: none;">-</text>
             </g>
             """
             
+        icon = f'<use href="#{theme["icon"]}" x="8" y="8" width="16" height="16" stroke="{theme["stroke"]}" />'
+        
         return f"""
-        <rect class="box-rect" width="{w}" height="{h}" stroke="{theme['stroke']}" fill="{theme['bg']}" rx="8" ry="8" />
-        <text x="15" y="25" fill="{theme['text']}" style="font-weight: 800; font-size: 14px;">{name}</text>
-        <text x="15" y="40" class="type-label" fill="{theme['text']}">{node_type}</text>
+        <rect class="box-rect" width="{w}" height="{h}" stroke="{theme['stroke']}" fill="{theme['bg']}" rx="6" ry="6" />
+        {icon}
+        <text x="30" y="20" fill="{theme['text']}" style="font-weight: 700; font-size: 13px;">
+            {display_name}
+            <title>{name}</title>
+        </text>
         {toggle_btn}
         """
 

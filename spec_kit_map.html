@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Big Picture 2.0 - {self.data.get('name', 'Project')}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #fcfcfc;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --accent: #3b82f6;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-primary);
+            overflow: hidden; /* Hide body scroll for panzoom */
+            height: 100vh;
+            width: 100vw;
+        }
+
+        header {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            padding: 8px 16px;
+            border-radius: 50px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        header:hover {
+             box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h1 { margin: 0; font-size: 1.1rem; font-weight: 800; color: var(--text-primary); }
+        .badge { font-size: 0.65rem; background: var(--accent); color: white; padding: 3px 8px; border-radius: 12px; font-weight: 600; }
+
+        /* Search Bar */
+        .search-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        #search-input {
+            background: rgba(0,0,0,0.04);
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
+            padding-left: 36px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            width: 200px;
+            transition: all 0.2s ease;
+            outline: none;
+            color: var(--text-primary);
+        }
+        
+        #search-input:focus {
+            background: white;
+            box-shadow: 0 0 0 2px var(--accent);
+            width: 280px;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        #viewport {
+            width: 100vw;
+            height: 100vh;
+            cursor: grab;
+        }
+        #viewport:active { cursor: grabbing; }
+
+        .box-rect {
+            transition: all 0.3s ease;
+            stroke-dasharray: 0;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.02));
+        }
+        
+        /* Highlighting Logic */
+        .node {
+            transition: opacity 0.3s ease;
+        }
+        
+        .node.dimmed {
+            opacity: 0.15;
+            filter: grayscale(100%);
+        }
+        
+        .node.highlighted > .box-rect {
+            stroke: var(--accent) !important;
+            stroke-width: 3;
+            filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.4));
+        }
+
+        .node:hover > .box-rect {
+            stroke-width: 3;
+            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.1));
+            stroke-dasharray: 5;
+            animation: dash 10s linear infinite;
+        }
+
+        @keyframes dash {
+            to { stroke-dashoffset: -100; }
+        }
+
+        text {
+            font-family: 'Inter', sans-serif;
+            pointer-events: none;
+        }
+        
+        .type-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            opacity: 0.5;
+            font-weight: 600;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: white;
+            border: 1px solid rgba(0,0,0,0.1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: transform 0.2s;
+            color: var(--text-primary);
+        }
+        .btn:hover { transform: scale(1.1); background: #f8fafc; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="brand">
+            <h1>Code Big Picture</h1>
+            <div class="badge">V2.1</div>
+        </div>
+        
+        <div class="search-container">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="search-input" placeholder="Search modules, classes..." autocomplete="off">
+        </div>
+    </header>
+
+    <div id="viewport">
+        <svg id="main-svg" width="100%" height="100%">
+            <g id="scene">
+                
+        <g class="node" id="node-34292388">
+            
+        <rect class="box-rect" width="1120" height="1185" stroke="#1a1a1b" fill="#ffffff" rx="6" ry="6" />
+        <text x="10" y="20" fill="#1a1a1b" style="font-weight: 800; font-size: 13px;">spec-kit-main</text>
+        <text x="10" y="32" class="type-label" fill="#1a1a1b" style="font-size: 9px; opacity: 0.6;">PROJECT</text>
+        
+            <g class="toggle-btn" onclick="toggleNode('node-34292388')" style="cursor: pointer; opacity: 0.7;">
+                <circle cx="1105" cy="18" r="8" fill="white" stroke="#1a1a1b" stroke-width="1"/>
+                <text x="1105" y="22" text-anchor="middle" font-size="12" font-weight="bold" fill="#1a1a1b" style="pointer-events: none;">-</text>
+            </g>
+            
+        
+            <g id="content-node-34292388" class="node-content" transform="translate(0, 5)">
+                <g transform="translate(15, 40)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">AGENTS.md</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g><g transform="translate(145, 40)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">CHANGELOG.md</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g><g transform="translate(275, 40)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">CODE_OF_CONDUCT.md</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g><g transform="translate(405, 40)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">CONTRIBUTING.md</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g><g transform="translate(15, 90)">
+        <g class="node" id="node-526788fe">
+            
+        <rect class="box-rect" width="800" height="145" stroke="#adb5bd" fill="#ffffff" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">docs</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">DIRECTORY</text>
+        
+            <g class="toggle-btn" onclick="toggleNode('node-526788fe')" style="cursor: pointer; opacity: 0.7;">
+                <circle cx="785" cy="18" r="8" fill="white" stroke="#adb5bd" stroke-width="1"/>
+                <text x="785" y="22" text-anchor="middle" font-size="12" font-weight="bold" fill="#adb5bd" style="pointer-events: none;">-</text>
+            </g>
+            
+        
+            <g id="content-node-526788fe" class="node-content" transform="translate(0, 5)">
+                <g transform="translate(15, 40)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">docfx.json</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g><g transform="translate(145, 40)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">index.md</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g><g transform="translate(275, 40)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">installation.md</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g><g transform="translate(405, 40)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">local-development.md</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g><g transform="translate(535, 40)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">quickstart.md</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g><g transform="translate(665, 40)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">README.md</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g><g transform="translate(15, 90)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">toc.yml</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g><g transform="translate(145, 90)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">upgrade.md</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g>
+            </g>
+        </g>
+        </g><g transform="translate(825, 90)">
+        <g class="node" id="node-603e04b6">
+            
+        <rect class="box-rect" width="150" height="95" stroke="#adb5bd" fill="#ffffff" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">memory</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">DIRECTORY</text>
+        
+            <g class="toggle-btn" onclick="toggleNode('node-603e04b6')" style="cursor: pointer; opacity: 0.7;">
+                <circle cx="135" cy="18" r="8" fill="white" stroke="#adb5bd" stroke-width="1"/>
+                <text x="135" y="22" text-anchor="middle" font-size="12" font-weight="bold" fill="#adb5bd" style="pointer-events: none;">-</text>
+            </g>
+            
+        
+            <g id="content-node-603e04b6" class="node-content" transform="translate(0, 5)">
+                <g transform="translate(15, 40)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">constitution.md</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g>
+            </g>
+        </g>
+        </g><g transform="translate(985, 90)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">pyproject.toml</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g><g transform="translate(15, 245)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">README.md</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g><g transform="translate(145, 245)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">SECURITY.md</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g><g transform="translate(275, 245)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">spec-driven.md</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g><g transform="translate(15, 295)">
+        <g class="node" id="node-9aa84366">
+            
+        <rect class="box-rect" width="890" height="565" stroke="#adb5bd" fill="#ffffff" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">src</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">DIRECTORY</text>
+        
+            <g class="toggle-btn" onclick="toggleNode('node-9aa84366')" style="cursor: pointer; opacity: 0.7;">
+                <circle cx="875" cy="18" r="8" fill="white" stroke="#adb5bd" stroke-width="1"/>
+                <text x="875" y="22" text-anchor="middle" font-size="12" font-weight="bold" fill="#adb5bd" style="pointer-events: none;">-</text>
+            </g>
+            
+        
+            <g id="content-node-9aa84366" class="node-content" transform="translate(0, 5)">
+                <g transform="translate(15, 40)">
+        <g class="node" id="node-5b92c066">
+            
+        <rect class="box-rect" width="860" height="510" stroke="#495057" fill="#f8f9fa" rx="6" ry="6" />
+        <text x="10" y="20" fill="#212529" style="font-weight: 800; font-size: 13px;">specify_cli</text>
+        <text x="10" y="32" class="type-label" fill="#212529" style="font-size: 9px; opacity: 0.6;">PACKAGE</text>
+        
+            <g class="toggle-btn" onclick="toggleNode('node-5b92c066')" style="cursor: pointer; opacity: 0.7;">
+                <circle cx="845" cy="18" r="8" fill="white" stroke="#495057" stroke-width="1"/>
+                <text x="845" y="22" text-anchor="middle" font-size="12" font-weight="bold" fill="#495057" style="pointer-events: none;">-</text>
+            </g>
+            
+        
+            <g id="content-node-5b92c066" class="node-content" transform="translate(0, 5)">
+                <g transform="translate(15, 40)">
+        <g class="node" id="node-a9fc91b1">
+            
+        <rect class="box-rect" width="830" height="455" stroke="#1971c2" fill="#e7f5ff" rx="6" ry="6" />
+        <text x="10" y="20" fill="#0b7285" style="font-weight: 800; font-size: 13px;">__init__.py</text>
+        <text x="10" y="32" class="type-label" fill="#0b7285" style="font-size: 9px; opacity: 0.6;">MODULE</text>
+        
+            <g class="toggle-btn" onclick="toggleNode('node-a9fc91b1')" style="cursor: pointer; opacity: 0.7;">
+                <circle cx="815" cy="18" r="8" fill="white" stroke="#1971c2" stroke-width="1"/>
+                <text x="815" y="22" text-anchor="middle" font-size="12" font-weight="bold" fill="#1971c2" style="pointer-events: none;">-</text>
+            </g>
+            
+        
+            <g id="content-node-a9fc91b1" class="node-content" transform="translate(0, 5)">
+                <g transform="translate(15, 40)">
+        <rect class="box-rect" width="120" height="40" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        <text x="10" y="20" fill="#e67700" style="font-weight: 800; font-size: 13px;">_github_token</text>
+        <text x="10" y="32" class="type-label" fill="#e67700" style="font-size: 9px; opacity: 0.6;">FUNCTION</text>
+        
+        </g><g transform="translate(145, 40)">
+        <rect class="box-rect" width="120" height="40" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        <text x="10" y="20" fill="#e67700" style="font-weight: 800; font-size: 13px;">_github_auth_headers</text>
+        <text x="10" y="32" class="type-label" fill="#e67700" style="font-size: 9px; opacity: 0.6;">FUNCTION</text>
+        
+        </g><g transform="translate(275, 40)">
+        <rect class="box-rect" width="120" height="40" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        <text x="10" y="20" fill="#e67700" style="font-weight: 800; font-size: 13px;">_parse_rate_limit_headers</text>
+        <text x="10" y="32" class="type-label" fill="#e67700" style="font-size: 9px; opacity: 0.6;">FUNCTION</text>
+        
+        </g><g transform="translate(405, 40)">
+        <rect class="box-rect" width="120" height="40" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        <text x="10" y="20" fill="#e67700" style="font-weight: 800; font-size: 13px;">_format_rate_limit_error</text>
+        <text x="10" y="32" class="type-label" fill="#e67700" style="font-size: 9px; opacity: 0.6;">FUNCTION</text>
+        
+        </g><g transform="translate(15, 90)">
+        <g class="node" id="node-561d6d70">
+            
+        <rect class="box-rect" width="800" height="145" stroke="#6741d9" fill="#f3f0ff" rx="6" ry="6" />
+        <text x="10" y="20" fill="#5f3dc4" style="font-weight: 800; font-size: 13px;">StepTracker</text>
+        <text x="10" y="32" class="type-label" fill="#5f3dc4" style="font-size: 9px; opacity: 0.6;">CLASS</text>
+        
+            <g class="toggle-btn" onclick="toggleNode('node-561d6d70')" style="cursor: pointer; opacity: 0.7;">
+                <circle cx="785" cy="18" r="8" fill="white" stroke="#6741d9" stroke-width="1"/>
+                <text x="785" y="22" text-anchor="middle" font-size="12" font-weight="bold" fill="#6741d9" style="pointer-events: none;">-</text>
+            </g>
+            
+        
+            <g id="content-node-561d6d70" class="node-content" transform="translate(0, 5)">
+                <g transform="translate(15, 40)">
+        <rect class="box-rect" width="120" height="40" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" />
+        <text x="10" y="20" fill="#a61e4d" style="font-weight: 800; font-size: 13px;">__init__</text>
+        <text x="10" y="32" class="type-label" fill="#a61e4d" style="font-size: 9px; opacity: 0.6;">METHOD</text>
+        
+        </g><g transform="translate(145, 40)">
+        <rect class="box-rect" width="120" height="40" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" />
+        <text x="10" y="20" fill="#a61e4d" style="font-weight: 800; font-size: 13px;">attach_refresh</text>
+        <text x="10" y="32" class="type-label" fill="#a61e4d" style="font-size: 9px; opacity: 0.6;">METHOD</text>
+        
+        </g><g transform="translate(275, 40)">
+        <rect class="box-rect" width="120" height="40" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" />
+        <text x="10" y="20" fill="#a61e4d" style="font-weight: 800; font-size: 13px;">add</text>
+        <text x="10" y="32" class="type-label" fill="#a61e4d" style="font-size: 9px; opacity: 0.6;">METHOD</text>
+        
+        </g><g transform="translate(405, 40)">
+        <rect class="box-rect" width="120" height="40" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" />
+        <text x="10" y="20" fill="#a61e4d" style="font-weight: 800; font-size: 13px;">start</text>
+        <text x="10" y="32" class="type-label" fill="#a61e4d" style="font-size: 9px; opacity: 0.6;">METHOD</text>
+        
+        </g><g transform="translate(535, 40)">
+        <rect class="box-rect" width="120" height="40" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" />
+        <text x="10" y="20" fill="#a61e4d" style="font-weight: 800; font-size: 13px;">complete</text>
+        <text x="10" y="32" class="type-label" fill="#a61e4d" style="font-size: 9px; opacity: 0.6;">METHOD</text>
+        
+        </g><g transform="translate(665, 40)">
+        <rect class="box-rect" width="120" height="40" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" />
+        <text x="10" y="20" fill="#a61e4d" style="font-weight: 800; font-size: 13px;">error</text>
+        <text x="10" y="32" class="type-label" fill="#a61e4d" style="font-size: 9px; opacity: 0.6;">METHOD</text>
+        
+        </g><g transform="translate(15, 90)">
+        <rect class="box-rect" width="120" height="40" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" />
+        <text x="10" y="20" fill="#a61e4d" style="font-weight: 800; font-size: 13px;">skip</text>
+        <text x="10" y="32" class="type-label" fill="#a61e4d" style="font-size: 9px; opacity: 0.6;">METHOD</text>
+        
+        </g><g transform="translate(145, 90)">
+        <rect class="box-rect" width="120" height="40" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" />
+        <text x="10" y="20" fill="#a61e4d" style="font-weight: 800; font-size: 13px;">_update</text>
+        <text x="10" y="32" class="type-label" fill="#a61e4d" style="font-size: 9px; opacity: 0.6;">METHOD</text>
+        
+        </g><g transform="translate(275, 90)">
+        <rect class="box-rect" width="120" height="40" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" />
+        <text x="10" y="20" fill="#a61e4d" style="font-weight: 800; font-size: 13px;">_maybe_refresh</text>
+        <text x="10" y="32" class="type-label" fill="#a61e4d" style="font-size: 9px; opacity: 0.6;">METHOD</text>
+        
+        </g><g transform="translate(405, 90)">
+        <rect class="box-rect" width="120" height="40" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" />
+        <text x="10" y="20" fill="#a61e4d" style="font-weight: 800; font-size: 13px;">render</text>
+        <text x="10" y="32" class="type-label" fill="#a61e4d" style="font-size: 9px; opacity: 0.6;">METHOD</text>
+        
+        </g>
+            </g>
+        </g>
+        </g><g transform="translate(15, 245)">
+        <rect class="box-rect" width="120" height="40" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        <text x="10" y="20" fill="#e67700" style="font-weight: 800; font-size: 13px;">get_key</text>
+        <text x="10" y="32" class="type-label" fill="#e67700" style="font-size: 9px; opacity: 0.6;">FUNCTION</text>
+        
+        </g><g transform="translate(145, 245)">
+        <rect class="box-rect" width="120" height="40" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        <text x="10" y="20" fill="#e67700" style="font-weight: 800; font-size: 13px;">select_with_arrows</text>
+        <text x="10" y="32" class="type-label" fill="#e67700" style="font-size: 9px; opacity: 0.6;">FUNCTION</text>
+        
+        </g><g transform="translate(275, 245)">
+        <g class="node" id="node-e4beceef">
+            
+        <rect class="box-rect" width="150" height="95" stroke="#6741d9" fill="#f3f0ff" rx="6" ry="6" />
+        <text x="10" y="20" fill="#5f3dc4" style="font-weight: 800; font-size: 13px;">BannerGroup</text>
+        <text x="10" y="32" class="type-label" fill="#5f3dc4" style="font-size: 9px; opacity: 0.6;">CLASS</text>
+        
+            <g class="toggle-btn" onclick="toggleNode('node-e4beceef')" style="cursor: pointer; opacity: 0.7;">
+                <circle cx="135" cy="18" r="8" fill="white" stroke="#6741d9" stroke-width="1"/>
+                <text x="135" y="22" text-anchor="middle" font-size="12" font-weight="bold" fill="#6741d9" style="pointer-events: none;">-</text>
+            </g>
+            
+        
+            <g id="content-node-e4beceef" class="node-content" transform="translate(0, 5)">
+                <g transform="translate(15, 40)">
+        <rect class="box-rect" width="120" height="40" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" />
+        <text x="10" y="20" fill="#a61e4d" style="font-weight: 800; font-size: 13px;">format_help</text>
+        <text x="10" y="32" class="type-label" fill="#a61e4d" style="font-size: 9px; opacity: 0.6;">METHOD</text>
+        
+        </g>
+            </g>
+        </g>
+        </g><g transform="translate(435, 245)">
+        <rect class="box-rect" width="120" height="40" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        <text x="10" y="20" fill="#e67700" style="font-weight: 800; font-size: 13px;">show_banner</text>
+        <text x="10" y="32" class="type-label" fill="#e67700" style="font-size: 9px; opacity: 0.6;">FUNCTION</text>
+        
+        </g><g transform="translate(565, 245)">
+        <rect class="box-rect" width="120" height="40" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        <text x="10" y="20" fill="#e67700" style="font-weight: 800; font-size: 13px;">callback</text>
+        <text x="10" y="32" class="type-label" fill="#e67700" style="font-size: 9px; opacity: 0.6;">FUNCTION</text>
+        
+        </g><g transform="translate(695, 245)">
+        <rect class="box-rect" width="120" height="40" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        <text x="10" y="20" fill="#e67700" style="font-weight: 800; font-size: 13px;">run_command</text>
+        <text x="10" y="32" class="type-label" fill="#e67700" style="font-size: 9px; opacity: 0.6;">FUNCTION</text>
+        
+        </g><g transform="translate(15, 350)">
+        <rect class="box-rect" width="120" height="40" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        <text x="10" y="20" fill="#e67700" style="font-weight: 800; font-size: 13px;">check_tool</text>
+        <text x="10" y="32" class="type-label" fill="#e67700" style="font-size: 9px; opacity: 0.6;">FUNCTION</text>
+        
+        </g><g transform="translate(145, 350)">
+        <rect class="box-rect" width="120" height="40" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        <text x="10" y="20" fill="#e67700" style="font-weight: 800; font-size: 13px;">is_git_repo</text>
+        <text x="10" y="32" class="type-label" fill="#e67700" style="font-size: 9px; opacity: 0.6;">FUNCTION</text>
+        
+        </g><g transform="translate(275, 350)">
+        <rect class="box-rect" width="120" height="40" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        <text x="10" y="20" fill="#e67700" style="font-weight: 800; font-size: 13px;">init_git_repo</text>
+        <text x="10" y="32" class="type-label" fill="#e67700" style="font-size: 9px; opacity: 0.6;">FUNCTION</text>
+        
+        </g><g transform="translate(405, 350)">
+        <rect class="box-rect" width="120" height="40" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        <text x="10" y="20" fill="#e67700" style="font-weight: 800; font-size: 13px;">handle_vscode_settings</text>
+        <text x="10" y="32" class="type-label" fill="#e67700" style="font-size: 9px; opacity: 0.6;">FUNCTION</text>
+        
+        </g><g transform="translate(535, 350)">
+        <rect class="box-rect" width="120" height="40" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        <text x="10" y="20" fill="#e67700" style="font-weight: 800; font-size: 13px;">merge_json_files</text>
+        <text x="10" y="32" class="type-label" fill="#e67700" style="font-size: 9px; opacity: 0.6;">FUNCTION</text>
+        
+        </g><g transform="translate(665, 350)">
+        <rect class="box-rect" width="120" height="40" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        <text x="10" y="20" fill="#e67700" style="font-weight: 800; font-size: 13px;">download_template_from_github</text>
+        <text x="10" y="32" class="type-label" fill="#e67700" style="font-size: 9px; opacity: 0.6;">FUNCTION</text>
+        
+        </g><g transform="translate(15, 400)">
+        <rect class="box-rect" width="120" height="40" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        <text x="10" y="20" fill="#e67700" style="font-weight: 800; font-size: 13px;">download_and_extract_template</text>
+        <text x="10" y="32" class="type-label" fill="#e67700" style="font-size: 9px; opacity: 0.6;">FUNCTION</text>
+        
+        </g><g transform="translate(145, 400)">
+        <rect class="box-rect" width="120" height="40" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        <text x="10" y="20" fill="#e67700" style="font-weight: 800; font-size: 13px;">ensure_executable_scripts</text>
+        <text x="10" y="32" class="type-label" fill="#e67700" style="font-size: 9px; opacity: 0.6;">FUNCTION</text>
+        
+        </g><g transform="translate(275, 400)">
+        <rect class="box-rect" width="120" height="40" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        <text x="10" y="20" fill="#e67700" style="font-weight: 800; font-size: 13px;">init</text>
+        <text x="10" y="32" class="type-label" fill="#e67700" style="font-size: 9px; opacity: 0.6;">FUNCTION</text>
+        
+        </g><g transform="translate(405, 400)">
+        <rect class="box-rect" width="120" height="40" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        <text x="10" y="20" fill="#e67700" style="font-weight: 800; font-size: 13px;">check</text>
+        <text x="10" y="32" class="type-label" fill="#e67700" style="font-size: 9px; opacity: 0.6;">FUNCTION</text>
+        
+        </g><g transform="translate(535, 400)">
+        <rect class="box-rect" width="120" height="40" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        <text x="10" y="20" fill="#e67700" style="font-weight: 800; font-size: 13px;">version</text>
+        <text x="10" y="32" class="type-label" fill="#e67700" style="font-size: 9px; opacity: 0.6;">FUNCTION</text>
+        
+        </g><g transform="translate(665, 400)">
+        <rect class="box-rect" width="120" height="40" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        <text x="10" y="20" fill="#e67700" style="font-weight: 800; font-size: 13px;">main</text>
+        <text x="10" y="32" class="type-label" fill="#e67700" style="font-size: 9px; opacity: 0.6;">FUNCTION</text>
+        
+        </g>
+            </g>
+        </g>
+        </g>
+            </g>
+        </g>
+        </g>
+            </g>
+        </g>
+        </g><g transform="translate(915, 295)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">SUPPORT.md</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g><g transform="translate(15, 870)">
+        <g class="node" id="node-f6e743a4">
+            
+        <rect class="box-rect" width="830" height="300" stroke="#adb5bd" fill="#ffffff" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">templates</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">DIRECTORY</text>
+        
+            <g class="toggle-btn" onclick="toggleNode('node-f6e743a4')" style="cursor: pointer; opacity: 0.7;">
+                <circle cx="815" cy="18" r="8" fill="white" stroke="#adb5bd" stroke-width="1"/>
+                <text x="815" y="22" text-anchor="middle" font-size="12" font-weight="bold" fill="#adb5bd" style="pointer-events: none;">-</text>
+            </g>
+            
+        
+            <g id="content-node-f6e743a4" class="node-content" transform="translate(0, 5)">
+                <g transform="translate(15, 40)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">agent-file-template.md</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g><g transform="translate(145, 40)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">checklist-template.md</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g><g transform="translate(15, 90)">
+        <g class="node" id="node-6bfa4f53">
+            
+        <rect class="box-rect" width="800" height="145" stroke="#adb5bd" fill="#ffffff" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">commands</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">DIRECTORY</text>
+        
+            <g class="toggle-btn" onclick="toggleNode('node-6bfa4f53')" style="cursor: pointer; opacity: 0.7;">
+                <circle cx="785" cy="18" r="8" fill="white" stroke="#adb5bd" stroke-width="1"/>
+                <text x="785" y="22" text-anchor="middle" font-size="12" font-weight="bold" fill="#adb5bd" style="pointer-events: none;">-</text>
+            </g>
+            
+        
+            <g id="content-node-6bfa4f53" class="node-content" transform="translate(0, 5)">
+                <g transform="translate(15, 40)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">analyze.md</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g><g transform="translate(145, 40)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">checklist.md</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g><g transform="translate(275, 40)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">clarify.md</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g><g transform="translate(405, 40)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">constitution.md</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g><g transform="translate(535, 40)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">implement.md</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g><g transform="translate(665, 40)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">plan.md</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g><g transform="translate(15, 90)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">specify.md</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g><g transform="translate(145, 90)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">tasks.md</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g><g transform="translate(275, 90)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">taskstoissues.md</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g>
+            </g>
+        </g>
+        </g><g transform="translate(15, 245)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">plan-template.md</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g><g transform="translate(145, 245)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">spec-template.md</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g><g transform="translate(275, 245)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">tasks-template.md</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g><g transform="translate(405, 245)">
+        <rect class="box-rect" width="120" height="40" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        <text x="10" y="20" fill="#495057" style="font-weight: 800; font-size: 13px;">vscode-settings.json</text>
+        <text x="10" y="32" class="type-label" fill="#495057" style="font-size: 9px; opacity: 0.6;">FILE</text>
+        
+        </g>
+            </g>
+        </g>
+        </g>
+            </g>
+        </g>
+        
+            </g>
+        </svg>
+    </div>
+
+    <div class="controls">
+        <button class="btn" onclick="zoom(1.2)" title="Zoom In">+</button>
+        <button class="btn" onclick="zoom(0.8)" title="Zoom Out">-</button>
+        <button class="btn" onclick="resetView()" title="Fit to Screen">⟲</button>
+    </div>
+
+    <script src="https://unpkg.com/@panzoom/panzoom@4.5.1/dist/panzoom.min.js"></script>
+    <script>
+        const elem = document.getElementById('scene');
+        const svg = document.getElementById('main-svg');
+        const searchInput = document.getElementById('search-input');
+        
+        const panzoom = Panzoom(elem, {
+            maxScale: 20,
+            minScale: 0.01,
+            contain: false
+        });
+        
+        const parent = elem.parentElement;
+        parent.addEventListener('wheel', panzoom.zoomWithWheel);
+
+        function zoom(scale) {
+            panzoom.zoom(panzoom.getScale() * scale, { animate: true });
+        }
+
+        function resetView() {
+            fitToScreen();
+            searchInput.value = '';
+            performSearch('');
+        }
+        
+        function fitToScreen() {
+            const bbox = elem.getBBox();
+            const parentWidth = parent.clientWidth;
+            const parentHeight = parent.clientHeight;
+            
+            const scaleX = (parentWidth - 100) / bbox.width;
+            const scaleY = (parentHeight - 100) / bbox.height;
+            const scale = Math.min(scaleX, scaleY);
+            
+            const x = (parentWidth - bbox.width * scale) / 2 - bbox.x * scale;
+            const y = (parentHeight - bbox.height * scale) / 2 - bbox.y * scale;
+            
+            panzoom.zoom(scale);
+            panzoom.pan(x / scale, y / scale);
+            
+            setTimeout(() => {
+                 panzoom.zoom(scale);
+                 panzoom.pan(x / scale, y / scale);
+            }, 10);
+        }
+
+        // Search Logic
+        function performSearch(query) {
+            const term = query.toLowerCase().trim();
+            const nodes = document.querySelectorAll('.node');
+            
+            if (!term) {
+                nodes.forEach(node => {
+                    node.classList.remove('dimmed', 'highlighted');
+                });
+                return;
+            }
+
+            // 1. Reset all
+            nodes.forEach(node => node.classList.add('dimmed'));
+            nodes.forEach(node => node.classList.remove('highlighted'));
+
+            // 2. Find matches
+            const matchedNodes = [];
+            nodes.forEach(node => {
+                // We store the name in a data attribute for easier access, 
+                // but let's grab the text element content for now
+                const textEl = node.querySelector('text');
+                if (textEl && textEl.textContent.toLowerCase().includes(term)) {
+                    matchedNodes.push(node);
+                    node.classList.remove('dimmed');
+                    node.classList.add('highlighted');
+                }
+            });
+            
+            // 3. Reveal parents of matches
+            matchedNodes.forEach(node => {
+                let parent = node.parentElement; 
+                while (parent) {
+                     if (parent.classList && parent.classList.contains('node')) {
+                         parent.classList.remove('dimmed');
+                         // Auto expand parents if collapsed? (future enhancement)
+                     }
+                     parent = parent.parentElement;
+                     if (parent.id === 'scene') break;
+                }
+            });
+        }
+
+        // Collapse/Expand Logic
+        window.toggleNode = function(nodeId) {
+            const content = document.getElementById('content-' + nodeId);
+            const node = document.getElementById(nodeId);
+            const btnText = node.querySelector('.toggle-btn text');
+            
+            if (content.style.display === 'none') {
+                // Expand
+                content.style.display = 'block';
+                btnText.textContent = '-';
+                node.classList.remove('collapsed');
+            } else {
+                // Collapse
+                content.style.display = 'none';
+                btnText.textContent = '+';
+                node.classList.add('collapsed');
+            }
+            
+            // Note: Since SVG elements don't auto-reflow, the parent box will remain large.
+            // This is "Ghost Mode" collapsing, which clears visual noise but preserves layout.
+        };
+
+        searchInput.addEventListener('input', (e) => {
+            performSearch(e.target.value);
+        });
+        
+        // Disable PanZoom when typing in search
+        searchInput.addEventListener('focus', () => {
+             // panzoom.pause() // Not widely supported in v4 default?
+             // Actually it's fine, wheel event is on parent div.
+        });
+
+        window.addEventListener('load', () => {
+             setTimeout(() => {
+                fitToScreen();
+             }, 100);
+        });
+    </script>
+</body>
+</html>
