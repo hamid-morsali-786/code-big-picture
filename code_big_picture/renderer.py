@@ -61,19 +61,64 @@ class SVGRenderer:
             left: 50%;
             transform: translateX(-50%);
             z-index: 100;
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            padding: 8px 16px;
             border-radius: 50px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             border: 1px solid rgba(0,0,0,0.05);
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 20px;
+            transition: all 0.3s ease;
+        }}
+        
+        header:hover {{
+             box-shadow: 0 8px 30px rgba(0,0,0,0.12);
         }}
 
-        h1 {{ margin: 0; font-size: 1.2rem; font-weight: 800; }}
-        .badge {{ font-size: 0.7rem; background: var(--accent); color: white; padding: 2px 8px; border-radius: 10px; }}
+        .brand {{
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }}
+
+        h1 {{ margin: 0; font-size: 1.1rem; font-weight: 800; color: var(--text-primary); }}
+        .badge {{ font-size: 0.65rem; background: var(--accent); color: white; padding: 3px 8px; border-radius: 12px; font-weight: 600; }}
+
+        /* Search Bar */
+        .search-container {{
+            position: relative;
+            display: flex;
+            align-items: center;
+        }}
+        
+        #search-input {{
+            background: rgba(0,0,0,0.04);
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
+            padding-left: 36px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            width: 200px;
+            transition: all 0.2s ease;
+            outline: none;
+            color: var(--text-primary);
+        }}
+        
+        #search-input:focus {{
+            background: white;
+            box-shadow: 0 0 0 2px var(--accent);
+            width: 280px;
+        }}
+        
+        .search-icon {{
+            position: absolute;
+            left: 12px;
+            opacity: 0.4;
+            pointer-events: none;
+        }}
 
         #viewport {{
             width: 100vw;
@@ -83,11 +128,27 @@ class SVGRenderer:
         #viewport:active {{ cursor: grabbing; }}
 
         .box-rect {{
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             stroke-dasharray: 0;
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.02));
         }}
         
+        /* Highlighting Logic */
+        .node {{
+            transition: opacity 0.3s ease;
+        }}
+        
+        .node.dimmed {{
+            opacity: 0.15;
+            filter: grayscale(100%);
+        }}
+        
+        .node.highlighted > .box-rect {{
+            stroke: var(--accent) !important;
+            stroke-width: 3;
+            filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.4));
+        }}
+
         .node:hover > .box-rect {{
             stroke-width: 3;
             filter: drop-shadow(0 4px 12px rgba(0,0,0,0.1));
@@ -134,15 +195,25 @@ class SVGRenderer:
             justify-content: center;
             font-size: 20px;
             transition: transform 0.2s;
+            color: var(--text-primary);
         }}
         .btn:hover {{ transform: scale(1.1); background: #f8fafc; }}
     </style>
 </head>
 <body>
     <header>
-        <h1>Code Big Picture</h1>
-        <div class="badge">V2.0 PREMIUM</div>
-        <span style="opacity: 0.5; font-size: 0.9rem;">{self.data.get('name')}</span>
+        <div class="brand">
+            <h1>Code Big Picture</h1>
+            <div class="badge">V2.1</div>
+        </div>
+        
+        <div class="search-container">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="search-input" placeholder="Search modules, classes..." autocomplete="off">
+        </div>
     </header>
 
     <div id="viewport">
@@ -154,15 +225,16 @@ class SVGRenderer:
     </div>
 
     <div class="controls">
-        <button class="btn" onclick="zoom(1.2)">+</button>
-        <button class="btn" onclick="zoom(0.8)">-</button>
-        <button class="btn" onclick="resetView()">⟲</button>
+        <button class="btn" onclick="zoom(1.2)" title="Zoom In">+</button>
+        <button class="btn" onclick="zoom(0.8)" title="Zoom Out">-</button>
+        <button class="btn" onclick="resetView()" title="Fit to Screen">⟲</button>
     </div>
 
     <script src="https://unpkg.com/@panzoom/panzoom@4.5.1/dist/panzoom.min.js"></script>
     <script>
         const elem = document.getElementById('scene');
         const svg = document.getElementById('main-svg');
+        const searchInput = document.getElementById('search-input');
         
         const panzoom = Panzoom(elem, {{
             maxScale: 20,
@@ -179,6 +251,8 @@ class SVGRenderer:
 
         function resetView() {{
             fitToScreen();
+            searchInput.value = '';
+            performSearch('');
         }}
         
         function fitToScreen() {{
@@ -186,26 +260,77 @@ class SVGRenderer:
             const parentWidth = parent.clientWidth;
             const parentHeight = parent.clientHeight;
             
-            // Calculate scale to fit
             const scaleX = (parentWidth - 100) / bbox.width;
             const scaleY = (parentHeight - 100) / bbox.height;
             const scale = Math.min(scaleX, scaleY);
             
-            // Center it
             const x = (parentWidth - bbox.width * scale) / 2 - bbox.x * scale;
             const y = (parentHeight - bbox.height * scale) / 2 - bbox.y * scale;
             
             panzoom.zoom(scale);
             panzoom.pan(x / scale, y / scale);
             
-            // Adjust to ensure perfect centering
             setTimeout(() => {{
                  panzoom.zoom(scale);
                  panzoom.pan(x / scale, y / scale);
             }}, 10);
         }}
 
-        // Auto-fit on load
+        // Search Logic
+        function performSearch(query) {{
+            const term = query.toLowerCase().trim();
+            const nodes = document.querySelectorAll('.node');
+            
+            if (!term) {{
+                nodes.forEach(node => {{
+                    node.classList.remove('dimmed', 'highlighted');
+                }});
+                return;
+            }}
+
+            // 1. Reset all
+            nodes.forEach(node => node.classList.add('dimmed'));
+            nodes.forEach(node => node.classList.remove('highlighted'));
+
+            // 2. Find matches
+            const matchedNodes = [];
+            nodes.forEach(node => {{
+                // We store the name in a data attribute for easier access, 
+                // but let's grab the text element content for now
+                const textEl = node.querySelector('text');
+                if (textEl && textEl.textContent.toLowerCase().includes(term)) {{
+                    matchedNodes.push(node);
+                    node.classList.remove('dimmed');
+                    node.classList.add('highlighted');
+                }}
+            }});
+            
+            // 3. Reveal parents of matches
+            matchedNodes.forEach(node => {{
+                let parent = node.parentElement; 
+                // Traverse up the DOM to find parent 'g' tags that are .node
+                // Structure: g.node > g (content) > g.node...
+                // So we need to look at closest .node ancestors
+                while (parent) {{
+                     if (parent.classList && parent.classList.contains('node')) {{
+                         parent.classList.remove('dimmed');
+                     }}
+                     parent = parent.parentElement;
+                     if (parent.id === 'scene') break;
+                }}
+            }});
+        }}
+
+        searchInput.addEventListener('input', (e) => {{
+            performSearch(e.target.value);
+        }});
+        
+        // Disable PanZoom when typing in search
+        searchInput.addEventListener('focus', () => {{
+             // panzoom.pause() // Not widely supported in v4 default?
+             // Actually it's fine, wheel event is on parent div.
+        }});
+
         window.addEventListener('load', () => {{
              setTimeout(() => {{
                 fitToScreen();
