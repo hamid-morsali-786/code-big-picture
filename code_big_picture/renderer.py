@@ -119,6 +119,14 @@ class SVGRenderer:
             filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.4));
         }}
 
+        .box-rect {{
+            transition: height 0.3s ease, stroke-width 0.3s ease;
+        }}
+
+        .node-content {{
+            transition: opacity 0.3s ease;
+        }}
+
         .controls {{
             position: fixed;
             bottom: 30px;
@@ -222,7 +230,7 @@ class SVGRenderer:
     <header>
         <div class="brand">
             <h1>Code Big Picture</h1>
-            <div class="badge">V2.2</div>
+            <div class="badge">V2.5</div>
         </div>
         
         <div class="search-container">
@@ -348,27 +356,110 @@ class SVGRenderer:
             }});
         }}
 
-        // Collapse/Expand Logic
+        function getTranslateY(el) {{
+            const transform = el.getAttribute('transform') || '';
+            const match = /translate\\([^,]+,\\s*([^)]+)\\)/.exec(transform);
+            return match ? parseFloat(match[1]) : 0;
+        }}
+
+        function setTranslateY(el, y) {{
+            const transform = el.getAttribute('transform') || '';
+            // Handle translate(x, y)
+            const newTransform = transform.replace(/(translate\\([^,]+,)\\s*[^)]+\\)/, `$1 ${{y}})`);
+            el.setAttribute('transform', newTransform);
+            el.setAttribute('data-y', y);
+        }}
+
+        function getRowHeight(rowEl) {{
+            let maxH = 0;
+            const items = rowEl.children; // <g transform>
+            for (let itm of items) {{
+                const rect = itm.querySelector('.box-rect');
+                if (rect) {{
+                    maxH = Math.max(maxH, parseFloat(rect.getAttribute('height')));
+                }}
+            }}
+            return maxH;
+        }}
+
+        // Collapse/Expand Logic with ULTRATHINK Smart Reflow (V2.5)
+        // This engine ensures row-height is always max(children), preventing row collisions.
         window.toggleNode = function(nodeId) {{
+            const nodeG = document.getElementById(nodeId);
             const content = document.getElementById('content-' + nodeId);
-            const node = document.getElementById(nodeId);
-            const btnText = node.querySelector('.toggle-btn text');
+            const rect = nodeG.querySelector('.box-rect');
+            const btnText = nodeG.querySelector('.toggle-btn text');
+            const row = nodeG.parentElement.parentElement; // node -> g-wrapper -> row
             
-            if (content.style.display === 'none') {{
-                // Expand
+            const headerH = 35; 
+            const fullH = parseFloat(rect.getAttribute('data-full-h'));
+            const isExpanding = (content.style.display === 'none');
+
+            // 1. Record OLD row height
+            const oldRowH = parseFloat(row.getAttribute('data-row-h'));
+
+            // 2. Perform Toggle
+            if (isExpanding) {{
                 content.style.display = 'block';
                 btnText.textContent = '-';
-                node.classList.remove('collapsed');
+                rect.setAttribute('height', fullH);
+                nodeG.classList.remove('collapsed');
             }} else {{
-                // Collapse
                 content.style.display = 'none';
                 btnText.textContent = '+';
-                node.classList.add('collapsed');
+                rect.setAttribute('height', headerH);
+                nodeG.classList.add('collapsed');
             }}
-            
-            // Note: Since SVG elements don't auto-reflow, the parent box will remain large.
-            // This is "Ghost Mode" collapsing, which clears visual noise but preserves layout.
+
+            // 3. Calculate NEW row height and EFFECTIVE delta
+            const newRowH = getRowHeight(row);
+            const effectiveDelta = newRowH - oldRowH;
+
+            if (Math.abs(effectiveDelta) > 0.01) {{
+                row.setAttribute('data-row-h', newRowH);
+                propagateReflow(row, effectiveDelta);
+            }}
         }};
+
+        function propagateReflow(row, delta) {{
+            const container = row.parentElement; // The content-<id> group
+            
+            if (container && container.classList.contains('node-content')) {{
+                // Shift subsequent rows
+                const targetRowY = parseFloat(row.getAttribute('data-y') || 0);
+                const siblings = container.children;
+                for (let r of siblings) {{
+                    const rowY = parseFloat(r.getAttribute('data-y') || 0);
+                    if (rowY > targetRowY) {{
+                        const currentY = getTranslateY(r);
+                        setTranslateY(r, currentY + delta);
+                    }}
+                }}
+                
+                // Shrink parent and recurse
+                const parentNodeG = container.parentElement;
+                if (parentNodeG && parentNodeG.classList.contains('node')) {{
+                    const parentRect = parentNodeG.querySelector('.box-rect');
+                    const currentH = parseFloat(parentRect.getAttribute('height'));
+                    const newH = currentH + delta;
+                    parentRect.setAttribute('height', newH);
+                    
+                    // Parent row might also shrink? 
+                    // Reflow needs to affect the row the parent belongs to
+                    const parentRow = parentNodeG.parentElement.parentElement;
+                    if (parentRow && parentRow.classList.contains('row')) {{
+                        const pOldH = parseFloat(parentRow.getAttribute('data-row-h'));
+                        const pNewH = getRowHeight(parentRow);
+                        const pDelta = pNewH - pOldH;
+                        
+                        if (Math.abs(pDelta) > 0.01) {{
+                            parentRow.setAttribute('data-row-h', pNewH);
+                            propagateReflow(parentRow, pDelta);
+                        }}
+                    }}
+                }}
+            }}
+        }}
 
         searchInput.addEventListener('input', (e) => {{
             performSearch(e.target.value);
@@ -434,9 +525,12 @@ class SVGRenderer:
         y_offset = self.header_height
         for i, row in enumerate(rows):
             x_offset = self.padding
+            row_items = []
             for c_svg, c_w, c_h in row:
-                content_svg.append(f'<g transform="translate({x_offset}, {y_offset})">{c_svg}</g>')
+                row_items.append(f'<g transform="translate({x_offset}, 0)">{c_svg}</g>')
                 x_offset += c_w + self.margin
+            
+            content_svg.append(f'<g class="row" transform="translate(0, {y_offset})" data-y="{y_offset}" data-row-h="{row_heights[i]}">{"".join(row_items)}</g>')
             y_offset += row_heights[i] + self.margin
 
         svg = f"""
@@ -469,7 +563,7 @@ class SVGRenderer:
         icon = f'<use href="#{theme["icon"]}" x="8" y="8" width="16" height="16" stroke="{theme["stroke"]}" />'
         
         return f"""
-        <rect class="box-rect" width="{w}" height="{h}" stroke="{theme['stroke']}" fill="{theme['bg']}" rx="6" ry="6" />
+        <rect class="box-rect" width="{w}" height="{h}" stroke="{theme['stroke']}" fill="{theme['bg']}" rx="6" ry="6" data-full-h="{h}" />
         {icon}
         <text x="30" y="20" fill="{theme['text']}" style="font-weight: 700; font-size: 13px;">
             {display_name}
