@@ -308,18 +308,38 @@ class SVGRenderer:
             // 3. Reveal parents of matches
             matchedNodes.forEach(node => {{
                 let parent = node.parentElement; 
-                // Traverse up the DOM to find parent 'g' tags that are .node
-                // Structure: g.node > g (content) > g.node...
-                // So we need to look at closest .node ancestors
                 while (parent) {{
                      if (parent.classList && parent.classList.contains('node')) {{
                          parent.classList.remove('dimmed');
+                         // Auto expand parents if collapsed? (future enhancement)
                      }}
                      parent = parent.parentElement;
                      if (parent.id === 'scene') break;
                 }}
             }});
         }}
+
+        // Collapse/Expand Logic
+        window.toggleNode = function(nodeId) {{
+            const content = document.getElementById('content-' + nodeId);
+            const node = document.getElementById(nodeId);
+            const btnText = node.querySelector('.toggle-btn text');
+            
+            if (content.style.display === 'none') {{
+                // Expand
+                content.style.display = 'block';
+                btnText.textContent = '-';
+                node.classList.remove('collapsed');
+            }} else {{
+                // Collapse
+                content.style.display = 'none';
+                btnText.textContent = '+';
+                node.classList.add('collapsed');
+            }}
+            
+            // Note: Since SVG elements don't auto-reflow, the parent box will remain large.
+            // This is "Ghost Mode" collapsing, which clears visual noise but preserves layout.
+        }};
 
         searchInput.addEventListener('input', (e) => {{
             performSearch(e.target.value);
@@ -343,6 +363,9 @@ class SVGRenderer:
 
     def _generate_box(self, node: Dict[str, Any], depth: int = 0) -> Tuple[str, float, float]:
         """Generates SVG with a smart stacking/tiling layout."""
+        import uuid
+        node_id = f"node-{uuid.uuid4().hex[:8]}"
+        
         node_type = node.get("type", "unknown")
         name = node.get("name", "Unknown")
         children = node.get("children", [])
@@ -352,12 +375,11 @@ class SVGRenderer:
         if not children:
             # Leaf node
             w, h = self.min_leaf_width, self.min_leaf_height
-            svg = self._draw_node_rect(name, node_type, theme, w, h)
+            # No toggle for leaves
+            svg = self._draw_node_rect(name, node_type, theme, w, h, node_id, has_children=False)
             return svg, w, h
 
         # Layout children
-        # We'll use a simple wrap-around logic:
-        # Max width for a package row depends on the depth or a fixed size
         MAX_ROW_WIDTH = 1200 if depth == 0 else 800
         
         rows: List[List[Tuple[str, float, float]]] = [[]]
@@ -365,7 +387,6 @@ class SVGRenderer:
         
         for child in children:
             c_svg, c_w, c_h = self._generate_box(child, depth + 1)
-            # If adding this child exceeds MAX_ROW_WIDTH, start new row
             if current_row_w + c_w + self.margin > MAX_ROW_WIDTH and rows[-1]:
                 rows.append([(c_svg, c_w, c_h)])
                 current_row_w = c_w
@@ -392,9 +413,9 @@ class SVGRenderer:
             y_offset += row_heights[i] + self.margin
 
         svg = f"""
-        <g class="node">
-            {self._draw_node_rect(name, node_type, theme, total_width, total_height)}
-            <g transform="translate(0, 5)">
+        <g class="node" id="{node_id}">
+            {self._draw_node_rect(name, node_type, theme, total_width, total_height, node_id, has_children=True)}
+            <g id="content-{node_id}" class="node-content" transform="translate(0, 5)">
                 {''.join(content_svg)}
             </g>
         </g>
@@ -402,12 +423,22 @@ class SVGRenderer:
         
         return svg, total_width, total_height
 
-    def _draw_node_rect(self, name: str, node_type: str, theme: dict, w: float, h: float) -> str:
-        """Helper to draw the actual rectangle and labels."""
+    def _draw_node_rect(self, name: str, node_type: str, theme: dict, w: float, h: float, node_id: str, has_children: bool) -> str:
+        """Helper to draw the actual rectangle, labels, and toggle button."""
+        toggle_btn = ""
+        if has_children:
+            toggle_btn = f"""
+            <g class="toggle-btn" onclick="toggleNode('{node_id}')" style="cursor: pointer; opacity: 0.7;">
+                <circle cx="{w - 20}" cy="25" r="10" fill="white" stroke="{theme['stroke']}" stroke-width="1"/>
+                <text x="{w - 20}" y="29" text-anchor="middle" font-size="14" font-weight="bold" fill="{theme['stroke']}" style="pointer-events: none;">-</text>
+            </g>
+            """
+            
         return f"""
         <rect class="box-rect" width="{w}" height="{h}" stroke="{theme['stroke']}" fill="{theme['bg']}" rx="8" ry="8" />
         <text x="15" y="25" fill="{theme['text']}" style="font-weight: 800; font-size: 14px;">{name}</text>
         <text x="15" y="40" class="type-label" fill="{theme['text']}">{node_type}</text>
+        {toggle_btn}
         """
 
 if __name__ == "__main__":
