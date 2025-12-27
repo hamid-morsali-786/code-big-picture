@@ -15,6 +15,8 @@
 
 *See your entire codebase at a glance. Navigate, search, and understand complex project structures instantly.*
 
+[🇮🇷 نسخه فارسی](README.fa.md)
+
 </div>
 
 ## ✨ Features
