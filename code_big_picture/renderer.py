@@ -1,6 +1,7 @@
 import json
 from typing import Dict, Any, List, Tuple
 
+
 class SVGRenderer:
     """Generates a high-end nested box visualization with Tiling Layout and Pan/Zoom."""
     
@@ -16,38 +17,59 @@ class SVGRenderer:
         "file": {"bg": "#f1f3f5", "stroke": "#868e96", "text": "#495057", "icon": "file-text"},
         "error": {"bg": "#fff5f5", "stroke": "#fa5252", "text": "#c92a2a", "icon": "alert-circle"}
     }
-
+    
+    # Constants
+    VERSION = "3.0"
+    HEADER_HEIGHT = 35
+    
     def __init__(self, structure: Dict[str, Any]):
         self.structure = structure
         self.padding = 15
         self.margin = 10
-        self.header_height = 35
+        self.header_height = self.HEADER_HEIGHT
         self.min_leaf_width = 120
         self.max_leaf_width = 350
         self.min_leaf_height = 42
 
     def render(self) -> str:
-        """Returns complex HTML with Icons, Pan/Zoom and High Density."""
+        """Main entry point - assembles the complete HTML document."""
         svg_content, width, height = self._generate_box(self.structure)
-        
+        return self._build_html_document(svg_content)
+    
+    def _build_html_document(self, svg_content: str) -> str:
+        """Assembles the complete HTML document from components."""
         return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Code Big Picture V2.2</title>
+    <title>Code Big Picture V{self.VERSION}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
-    <style>
-        :root {{
+    <style>{self._build_css()}</style>
+</head>
+<body>
+    {self._build_svg_symbols()}
+    {self._build_header()}
+    {self._build_viewport(svg_content)}
+    {self._build_legend()}
+    {self._build_controls()}
+    {self._build_scripts()}
+</body>
+</html>"""
+
+    def _build_css(self) -> str:
+        """Returns all CSS styles for the visualization."""
+        return """
+        :root {
             --bg-color: #fcfcfc;
             --card-bg: #ffffff;
             --text-primary: #1e293b;
             --accent: #3b82f6;
-        }}
+        }
         
-        body {{
+        body {
             margin: 0;
             padding: 0;
             background-color: var(--bg-color);
@@ -56,9 +78,9 @@ class SVGRenderer:
             overflow: hidden;
             height: 100vh;
             width: 100vw;
-        }}
+        }
 
-        header {{
+        header {
             position: fixed;
             top: 0;
             left: 0;
@@ -74,23 +96,23 @@ class SVGRenderer:
             padding: 0 40px;
             z-index: 1000;
             gap: 20px;
-        }}
+        }
         
-        .brand {{
+        .brand {
             display: flex;
             align-items: center;
             gap: 14px;
             flex-shrink: 0;
-        }}
+        }
 
-        .header-controls {{
+        .header-controls {
             display: flex;
             gap: 8px;
             align-items: center;
             flex-shrink: 0;
-        }}
+        }
 
-        .header-btn {{
+        .header-btn {
             display: flex;
             align-items: center;
             gap: 6px;
@@ -104,29 +126,29 @@ class SVGRenderer:
             color: #1e293b;
             transition: all 0.2s ease;
             font-family: inherit;
-        }}
+        }
 
-        .header-btn:hover {{
+        .header-btn:hover {
             background: #f8fafc;
             border-color: rgba(59, 130, 246, 0.3);
             transform: translateY(-1px);
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }}
+        }
 
-        .header-btn svg {{
+        .header-btn svg {
             opacity: 0.7;
-        }}
+        }
 
-        h1 {{ margin: 0; font-size: 1.1rem; font-weight: 800; color: var(--text-primary); }}
-        .badge {{ font-size: 0.65rem; background: var(--accent); color: white; padding: 3px 8px; border-radius: 12px; font-weight: 600; }}
+        h1 { margin: 0; font-size: 1.1rem; font-weight: 800; color: var(--text-primary); }
+        .badge { font-size: 0.65rem; background: var(--accent); color: white; padding: 3px 8px; border-radius: 12px; font-weight: 600; }
 
-        .search-container {{
+        .search-container {
             position: relative;
             display: flex;
             align-items: center;
-        }}
+        }
         
-        #search-input {{
+        #search-input {
             background: rgba(0,0,0,0.04);
             border: none;
             border-radius: 20px;
@@ -136,15 +158,15 @@ class SVGRenderer:
             font-size: 0.9rem;
             width: 200px;
             outline: none;
-        }}
+        }
         
-        .search-icon {{
+        .search-icon {
             position: absolute;
             left: 12px;
             opacity: 0.4;
-        }}
+        }
 
-        #viewport {{ 
+        #viewport { 
             position: fixed;
             top: 70px;
             left: 0;
@@ -154,35 +176,35 @@ class SVGRenderer:
             height: calc(100vh - 70px); 
             cursor: grab; 
             overflow: hidden;
-        }}
-        .box-rect {{ transition: all 0.3s ease; }}
+        }
+        .box-rect { transition: all 0.3s ease; }
         
-        .node {{ transition: opacity 0.3s ease; }}
-        .node.dimmed {{ opacity: 0.15; filter: grayscale(100%); }}
-        .node.highlighted > .box-rect {{
+        .node { transition: opacity 0.3s ease; }
+        .node.dimmed { opacity: 0.15; filter: grayscale(100%); }
+        .node.highlighted > .box-rect {
             stroke: var(--accent) !important;
             stroke-width: 3;
             filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.4));
-        }}
+        }
 
-        .box-rect {{
+        .box-rect {
             transition: height 0.3s ease, stroke-width 0.3s ease;
-        }}
+        }
 
-        .node-content {{
+        .node-content {
             transition: opacity 0.3s ease;
-        }}
+        }
 
-        .controls {{
+        .controls {
             position: fixed;
             bottom: 30px;
             right: 30px;
             display: flex;
             flex-direction: column;
             gap: 10px;
-        }}
+        }
         
-        .btn {{
+        .btn {
             width: 45px;
             height: 45px;
             border-radius: 50%;
@@ -194,10 +216,9 @@ class SVGRenderer:
             align-items: center;
             justify-content: center;
             font-size: 20px;
-        }}
+        }
 
-        /* Legend Style */
-        .legend {{
+        .legend {
             position: fixed;
             bottom: 30px;
             left: 30px;
@@ -211,34 +232,36 @@ class SVGRenderer:
             flex-direction: column;
             gap: 8px;
             z-index: 100;
-        }}
+        }
         
-        .legend-title {{
+        .legend-title {
             font-size: 11px;
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.1em;
             color: #64748b;
             margin-bottom: 4px;
-        }}
+        }
         
-        .legend-item {{
+        .legend-item {
             display: flex;
             align-items: center;
             gap: 10px;
             font-size: 11px;
             font-weight: 600;
             color: #475569;
-        }}
+        }
         
-        .legend-icon {{
+        .legend-icon {
             width: 14px;
             height: 14px;
             opacity: 0.7;
-        }}
-    </style>
-</head>
-<body>
+        }
+        """
+
+    def _build_svg_symbols(self) -> str:
+        """Returns SVG symbol definitions for all node type icons."""
+        return """
     <svg style="display:none">
         <!-- Project: Full isometric cube -->
         <symbol id="cube" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -267,16 +290,20 @@ class SVGRenderer:
             <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
             <circle cx="12" cy="12" r="3" fill="currentColor" opacity="0.4"></circle>
         </symbol>
-        <!-- Logic icons unchanged -->
+        <!-- Logic icons -->
         <symbol id="terminal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></symbol>
         <symbol id="file-text" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></symbol>
         <symbol id="alert-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></symbol>
     </svg>
+        """
 
+    def _build_header(self) -> str:
+        """Returns the header HTML with brand, controls and search."""
+        return f"""
     <header>
         <div class="brand">
             <h1>Code Big Picture</h1>
-            <div class="badge">V3.0</div>
+            <div class="badge">V{self.VERSION}</div>
         </div>
         
         <div class="header-controls">
@@ -305,7 +332,11 @@ class SVGRenderer:
             <input type="text" id="search-input" placeholder="Search modules, classes..." autocomplete="off">
         </div>
     </header>
+        """
 
+    def _build_viewport(self, svg_content: str) -> str:
+        """Returns the main viewport containing the SVG visualization."""
+        return f"""
     <div id="viewport">
         <svg id="main-svg" width="100%" height="100%">
             <g id="scene">
@@ -313,7 +344,11 @@ class SVGRenderer:
             </g>
         </svg>
     </div>
+        """
 
+    def _build_legend(self) -> str:
+        """Returns the map legend panel."""
+        return """
     <div class="legend" id="map-legend">
         <div class="legend-title">Map Guide / راهنما</div>
         <div class="legend-item"><svg class="legend-icon"><use href="#cube" /></svg> Project</div>
@@ -324,39 +359,47 @@ class SVGRenderer:
         <div class="legend-item"><svg class="legend-icon"><use href="#terminal" /></svg> Function / Method</div>
         <div class="legend-item"><svg class="legend-icon"><use href="#file-text" /></svg> Other File</div>
     </div>
+        """
 
+    def _build_controls(self) -> str:
+        """Returns the zoom control buttons."""
+        return """
     <div class="controls">
         <button class="btn" onclick="zoom(1.2)" title="Zoom In">+</button>
         <button class="btn" onclick="zoom(0.8)" title="Zoom Out">-</button>
         <button class="btn" onclick="resetView()" title="Fit to Screen">⟲</button>
     </div>
+        """
 
+    def _build_scripts(self) -> str:
+        """Returns all JavaScript for interactivity."""
+        return """
     <script src="https://unpkg.com/@panzoom/panzoom@4.5.1/dist/panzoom.min.js"></script>
     <script>
         const elem = document.getElementById('scene');
         const svg = document.getElementById('main-svg');
         const searchInput = document.getElementById('search-input');
         
-        const panzoom = Panzoom(elem, {{
+        const panzoom = Panzoom(elem, {
             maxScale: 20,
             minScale: 0.01,
             contain: false
-        }});
+        });
         
         const parent = elem.parentElement;
         parent.addEventListener('wheel', panzoom.zoomWithWheel);
 
-        function zoom(scale) {{
-            panzoom.zoom(panzoom.getScale() * scale, {{ animate: true }});
-        }}
+        function zoom(scale) {
+            panzoom.zoom(panzoom.getScale() * scale, { animate: true });
+        }
 
-        function resetView() {{
+        function resetView() {
             fitToScreen();
             searchInput.value = '';
             performSearch('');
-        }}
+        }
         
-        function fitToScreen() {{
+        function fitToScreen() {
             const bbox = elem.getBBox();
             const parentWidth = parent.clientWidth;
             const parentHeight = parent.clientHeight;
@@ -368,252 +411,183 @@ class SVGRenderer:
             const x = (parentWidth - bbox.width * scale) / 2 - bbox.x * scale;
             const y = (parentHeight - bbox.height * scale) / 2 - bbox.y * scale;
             
-            panzoom.pan(x, y, {{ animate: true }});
-            panzoom.zoom(scale, {{ animate: true }});
-        }}
+            panzoom.pan(x, y, { animate: true });
+            panzoom.zoom(scale, { animate: true });
+        }
 
-        // Expand All Nodes - Toggle all collapsed nodes
-        window.expandAll = function() {{
+        // Expand All Nodes
+        window.expandAll = function() {
             const allNodes = document.querySelectorAll('.node');
-            // Expand from top to bottom (parent first)
-            allNodes.forEach(node => {{
+            allNodes.forEach(node => {
                 const content = document.getElementById('content-' + node.id);
-                if (content && content.style.display === 'none') {{
-                    // This node is collapsed, expand it
+                if (content && content.style.display === 'none') {
                     window.toggleNode(node.id);
-                }}
-            }});
-            
-            // Auto-fit after expansion
-            setTimeout(() => {{
-                fitToScreen();
-            }}, 400);
-        }}
+                }
+            });
+            setTimeout(() => { fitToScreen(); }, 400);
+        }
 
         // Collapse All Nodes
-        window.collapseAll = function() {{
+        window.collapseAll = function() {
             const allNodes = document.querySelectorAll('.node');
-            // Reverse order to collapse children first (bottom-up)
             const nodesArray = Array.from(allNodes).reverse();
-            
-            nodesArray.forEach(node => {{
+            nodesArray.forEach(node => {
                 const content = document.getElementById('content-' + node.id);
-                if (content && content.style.display !== 'none') {{
-                    // This node is expanded, collapse it
+                if (content && content.style.display !== 'none') {
                     window.toggleNode(node.id);
-                }}
-            }});
-            
-            // Auto-fit after collapse for better view
-            setTimeout(() => {{
-                fitToScreen();
-            }}, 400);
-        }}
+                }
+            });
+            setTimeout(() => { fitToScreen(); }, 400);
+        }
 
         // Search Logic
-        function performSearch(query) {{
+        function performSearch(query) {
             const term = query.toLowerCase().trim();
             const nodes = document.querySelectorAll('.node');
             
-            if (!term) {{
-                nodes.forEach(node => {{
+            if (!term) {
+                nodes.forEach(node => {
                     node.classList.remove('dimmed', 'highlighted');
-                }});
+                });
                 return;
-            }}
+            }
 
-            // 1. Reset all
             nodes.forEach(node => node.classList.add('dimmed'));
             nodes.forEach(node => node.classList.remove('highlighted'));
 
-            // 2. Find matches
             const matchedNodes = [];
-            nodes.forEach(node => {{
-                // We store the name in a data attribute for easier access, 
-                // but let's grab the text element content for now
+            nodes.forEach(node => {
                 const textEl = node.querySelector('text');
-                if (textEl && textEl.textContent.toLowerCase().includes(term)) {{
+                if (textEl && textEl.textContent.toLowerCase().includes(term)) {
                     matchedNodes.push(node);
                     node.classList.remove('dimmed');
                     node.classList.add('highlighted');
-                }}
-            }});
+                }
+            });
             
-            // 3. Reveal parents of matches
-            matchedNodes.forEach(node => {{
+            matchedNodes.forEach(node => {
                 let parent = node.parentElement; 
-                while (parent) {{
-                     if (parent.classList && parent.classList.contains('node')) {{
+                while (parent) {
+                     if (parent.classList && parent.classList.contains('node')) {
                          parent.classList.remove('dimmed');
-                         // Auto expand parents if collapsed? (future enhancement)
-                     }}
+                     }
                      parent = parent.parentElement;
                      if (parent.id === 'scene') break;
-                }}
-            }});
-        }}
+                }
+            });
+        }
 
-        function getTranslateY(el) {{
-            const transform = el.getAttribute('transform') || '';
-            const match = /translate\\([^,]+,\\s*([^)]+)\\)/.exec(transform);
-            return match ? parseFloat(match[1]) : 0;
-        }}
-
-        function setTranslateY(el, y) {{
-            const transform = el.getAttribute('transform') || '';
-            // Handle translate(x, y)
-            const newTransform = transform.replace(/(translate\\([^,]+,)\\s*[^)]+\\)/, `$1 ${{y}})`);
-            el.setAttribute('transform', newTransform);
-            el.setAttribute('data-y', y);
-        }}
-
-        function getRowHeight(rowEl) {{
+        function getRowHeight(rowEl) {
             let maxH = 0;
-            const items = rowEl.children; // <g transform>
-            for (let itm of items) {{
+            const items = rowEl.children;
+            for (let itm of items) {
                 const rect = itm.querySelector('.box-rect');
-                if (rect) {{
+                if (rect) {
                     maxH = Math.max(maxH, parseFloat(rect.getAttribute('height')));
-                }}
-            }}
+                }
+            }
             return maxH;
-        }}
+        }
 
-        // ========================================
-        // V3.0 DYNAMIC HEIGHT CALCULATION ENGINE
-        // ========================================
-        // Instead of using stored data-full-h, we calculate actual height
-        // based on current visible children state.
-
-        function calculateActualNodeHeight(nodeG) {{
+        // V3.0 Dynamic Height Calculation Engine
+        function calculateActualNodeHeight(nodeG) {
             const content = document.getElementById('content-' + nodeG.id);
-            const rect = nodeG.querySelector('.box-rect');
-            
-            if (!content || content.style.display === 'none') {{
-                return 35; // Header only (collapsed)
-            }}
-            
-            // Content is visible, calculate actual height from rows
+            if (!content || content.style.display === 'none') {
+                return 35;
+            }
             const headerH = 35;
             const margin = 8;
             let contentHeight = 0;
-            
             const rows = content.querySelectorAll(':scope > .row');
-            for (let row of rows) {{
-                const rowH = getRowHeight(row);
-                contentHeight += rowH + margin;
-            }}
-            
+            for (let row of rows) {
+                contentHeight += getRowHeight(row) + margin;
+            }
             return headerH + contentHeight;
-        }}
+        }
 
-        function repositionRows(container) {{
+        function repositionRows(container) {
             const headerH = 35;
             const margin = 8;
             let y = headerH;
-            
             const rows = container.querySelectorAll(':scope > .row');
-            for (let row of rows) {{
+            for (let row of rows) {
                 const rowH = getRowHeight(row);
                 row.setAttribute('data-row-h', rowH);
                 row.setAttribute('data-y', y);
-                
-                // Update transform to new Y position
                 const currentTransform = row.getAttribute('transform') || '';
-                // Replace the translate Y value
-                const xMatch = /translate\(([^,]+),/.exec(currentTransform);
+                const xMatch = /translate\\(([^,]+),/.exec(currentTransform);
                 const xVal = xMatch ? xMatch[1] : '0';
-                row.setAttribute('transform', `translate(${{xVal}}, ${{y}})`);
-                
+                row.setAttribute('transform', 'translate(' + xVal + ', ' + y + ')');
                 y += rowH + margin;
-            }}
-        }}
+            }
+        }
 
-        function recalculateFromNode(nodeG) {{
+        function recalculateFromNode(nodeG) {
             const content = document.getElementById('content-' + nodeG.id);
             const rect = nodeG.querySelector('.box-rect');
-            
             if (!rect) return;
             
-            // Calculate actual height based on current state
             const newH = calculateActualNodeHeight(nodeG);
             rect.setAttribute('height', newH);
             
-            // Reposition rows within this node if content is visible
-            if (content && content.style.display !== 'none') {{
+            if (content && content.style.display !== 'none') {
                 repositionRows(content);
-            }}
+            }
             
-            // Propagate to parent node
             const wrapper = nodeG.parentElement;
             const row = wrapper ? wrapper.parentElement : null;
             
-            if (row && row.classList.contains('row')) {{
-                // Update this row's height
+            if (row && row.classList.contains('row')) {
                 const newRowH = getRowHeight(row);
                 row.setAttribute('data-row-h', newRowH);
-                
-                // Reposition all sibling rows in parent container
                 const container = row.parentElement;
-                if (container && container.classList.contains('node-content')) {{
+                if (container && container.classList.contains('node-content')) {
                     repositionRows(container);
-                    
-                    // Recurse to parent node
                     const parentNodeG = container.parentElement;
-                    if (parentNodeG && parentNodeG.classList.contains('node')) {{
+                    if (parentNodeG && parentNodeG.classList.contains('node')) {
                         recalculateFromNode(parentNodeG);
-                    }}
-                }}
-            }}
-        }}
+                    }
+                }
+            }
+        }
 
-        // Toggle Logic with Dynamic Height Calculation (V3.0)
-        window.toggleNode = function(nodeId) {{
+        // Toggle Logic (V3.0)
+        window.toggleNode = function(nodeId) {
             const nodeG = document.getElementById(nodeId);
             const content = document.getElementById('content-' + nodeId);
             const btnText = nodeG.querySelector('.toggle-btn text');
             
-            if (!content) return; // Leaf node, can't toggle
+            if (!content) return;
             
             const isExpanding = (content.style.display === 'none');
             
-            // Toggle visibility
-            if (isExpanding) {{
+            if (isExpanding) {
                 content.style.display = 'block';
                 btnText.textContent = '-';
                 nodeG.classList.remove('collapsed');
-            }} else {{
+            } else {
                 content.style.display = 'none';
                 btnText.textContent = '+';
                 nodeG.classList.add('collapsed');
-            }}
+            }
             
-            // Recalculate this node and propagate up the tree
             recalculateFromNode(nodeG);
-        }};
+        };
 
-        searchInput.addEventListener('input', (e) => {{
+        searchInput.addEventListener('input', (e) => {
             performSearch(e.target.value);
-        }});
-        
-        // Disable PanZoom when typing in search
-        searchInput.addEventListener('focus', () => {{
-             // panzoom.pause() // Not widely supported in v4 default?
-             // Actually it's fine, wheel event is on parent div.
-        }});
+        });
 
-        window.addEventListener('load', () => {{
-             setTimeout(() => {{
+        window.addEventListener('load', () => {
+             setTimeout(() => {
                 fitToScreen();
-             }}, 100);
-        }});
+             }, 100);
+        });
     </script>
-</body>
-</html>
-"""
+        """
 
     def _generate_box(self, node: Dict[str, Any], depth: int = 0) -> Tuple[str, float, float]:
-        """Generates SVG with a smart layout and dynamic sizing."""
+        """Generates SVG for a single node with smart tiling layout."""
         import uuid
         node_id = f"node-{uuid.uuid4().hex[:8]}"
         
@@ -624,15 +598,12 @@ class SVGRenderer:
         theme = self.THEME.get(node_type, self.THEME["method"])
         
         if not children:
-            # Dynamic Width Calculation for leaf nodes
-            # Roughly 8px per character + icon space + padding
             estimated_w = (len(name) * 8.5) + 40
             w = max(self.min_leaf_width, min(self.max_leaf_width, estimated_w))
             h = self.min_leaf_height
             svg = self._draw_node_rect(name, node_type, theme, w, h, node_id, has_children=False)
             return svg, w, h
 
-        # Layout children...
         MAX_ROW_WIDTH = 1200 if depth == 0 else 800
         rows: List[List[Tuple[str, float, float]]] = [[]]
         current_row_w = 0
@@ -675,10 +646,9 @@ class SVGRenderer:
         return svg, total_width, total_height
 
     def _draw_node_rect(self, name: str, node_type: str, theme: dict, w: float, h: float, node_id: str, has_children: bool) -> str:
-        """Helper to draw the rectangle with ICON and Truncated text."""
-        # Truncation logic
+        """Draws the rectangle, icon, and text for a node."""
         display_name = name
-        max_chars = int((w - 45) / 8) # Estimated capacity
+        max_chars = int((w - 45) / 8)
         if len(name) > max_chars and max_chars > 3:
             display_name = name[:max_chars-3] + "..."
 
@@ -703,8 +673,8 @@ class SVGRenderer:
         {toggle_btn}
         """
 
+
 if __name__ == "__main__":
-    # Test on a slightly more complex dummy data
     test_data = {
         "name": "SuperApp",
         "type": "project",
