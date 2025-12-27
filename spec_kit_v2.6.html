@@ -28,25 +28,61 @@
 
         header {
             position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 100;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
             background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            padding: 8px 16px;
-            border-radius: 50px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            border: 1px solid rgba(0,0,0,0.05);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.03);
             display: flex;
             align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            z-index: 1000;
             gap: 20px;
         }
         
         .brand {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 14px;
+            flex-shrink: 0;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .header-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: white;
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            color: #1e293b;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .header-btn:hover {
+            background: #f8fafc;
+            border-color: rgba(59, 130, 246, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .header-btn svg {
+            opacity: 0.7;
         }
 
         h1 { margin: 0; font-size: 1.1rem; font-weight: 800; color: var(--text-primary); }
@@ -76,7 +112,17 @@
             opacity: 0.4;
         }
 
-        #viewport { width: 100vw; height: 100vh; cursor: grab; }
+        #viewport { 
+            position: fixed;
+            top: 70px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100vw; 
+            height: calc(100vh - 70px); 
+            cursor: grab; 
+            overflow: hidden;
+        }
         .box-rect { transition: all 0.3s ease; }
         
         .node { transition: opacity 0.3s ease; }
@@ -85,6 +131,14 @@
             stroke: var(--accent) !important;
             stroke-width: 3;
             filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.4));
+        }
+
+        .box-rect {
+            transition: height 0.3s ease, stroke-width 0.3s ease;
+        }
+
+        .node-content {
+            transition: opacity 0.3s ease;
         }
 
         .controls {
@@ -190,7 +244,25 @@
     <header>
         <div class="brand">
             <h1>Code Big Picture</h1>
-            <div class="badge">V2.2</div>
+            <div class="badge">V2.6</div>
+        </div>
+        
+        <div class="header-controls">
+            <button class="header-btn" onclick="collapseAll()" title="بستن همه نودها">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="9" y1="12" x2="15" y2="12"></line>
+                </svg>
+                بستن همه
+            </button>
+            <button class="header-btn" onclick="expandAll()" title="باز کردن همه نودها">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="12" y1="8" x2="12" y2="16"></line>
+                    <line x1="8" y1="12" x2="16" y2="12"></line>
+                </svg>
+                باز کردن همه
+            </button>
         </div>
         
         <div class="search-container">
@@ -206,723 +278,723 @@
         <svg id="main-svg" width="100%" height="100%">
             <g id="scene">
                 
-        <g class="node" id="node-c1e95de6">
+        <g class="node" id="node-17afee42">
             
-        <rect class="box-rect" width="1219.0" height="1272" stroke="#1a1a1b" fill="#ffffff" rx="6" ry="6" />
+        <rect class="box-rect" width="1219.0" height="1272" stroke="#1a1a1b" fill="#ffffff" rx="6" ry="6" data-full-h="1272" />
         <use href="#cube" x="8" y="8" width="16" height="16" stroke="#1a1a1b" />
         <text x="30" y="20" fill="#1a1a1b" style="font-weight: 700; font-size: 13px;">
             spec-kit-main
             <title>spec-kit-main</title>
         </text>
         
-            <g class="toggle-btn" onclick="toggleNode('node-c1e95de6')" style="cursor: pointer; opacity: 0.6;">
+            <g class="toggle-btn" onclick="toggleNode('node-17afee42')" style="cursor: pointer; opacity: 0.6;">
                 <circle cx="1204.0" cy="15" r="7" fill="white" stroke="#1a1a1b" stroke-width="1"/>
                 <text x="1204.0" y="19" text-anchor="middle" font-size="10" font-weight="bold" fill="#1a1a1b" style="pointer-events: none;">-</text>
             </g>
             
         
-            <g id="content-node-c1e95de6" class="node-content" transform="translate(0, 5)">
-                <g transform="translate(15, 35)">
-        <rect class="box-rect" width="120" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+            <g id="content-node-17afee42" class="node-content" transform="translate(0, 5)">
+                <g class="row" transform="translate(0, 35)" data-y="35" data-row-h="42"><g transform="translate(15, 0)">
+        <rect class="box-rect" width="120" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             AGENTS.md
             <title>AGENTS.md</title>
         </text>
         
-        </g><g transform="translate(145, 35)">
-        <rect class="box-rect" width="142.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        </g><g transform="translate(145, 0)">
+        <rect class="box-rect" width="142.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             CHANGELOG.md
             <title>CHANGELOG.md</title>
         </text>
         
-        </g><g transform="translate(297.0, 35)">
-        <rect class="box-rect" width="193.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        </g><g transform="translate(297.0, 0)">
+        <rect class="box-rect" width="193.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             CODE_OF_CONDUCT.md
             <title>CODE_OF_CONDUCT.md</title>
         </text>
         
-        </g><g transform="translate(500.0, 35)">
-        <rect class="box-rect" width="167.5" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        </g><g transform="translate(500.0, 0)">
+        <rect class="box-rect" width="167.5" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             CONTRIBUTING.md
             <title>CONTRIBUTING.md</title>
         </text>
         
-        </g><g transform="translate(15, 87)">
-        <g class="node" id="node-1dba8725">
+        </g></g><g class="row" transform="translate(0, 87)" data-y="87" data-row-h="144"><g transform="translate(15, 0)">
+        <g class="node" id="node-69841e94">
             
-        <rect class="box-rect" width="682.5" height="144" stroke="#adb5bd" fill="#ffffff" rx="6" ry="6" />
+        <rect class="box-rect" width="682.5" height="144" stroke="#adb5bd" fill="#ffffff" rx="6" ry="6" data-full-h="144" />
         <use href="#folder" x="8" y="8" width="16" height="16" stroke="#adb5bd" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             docs
             <title>docs</title>
         </text>
         
-            <g class="toggle-btn" onclick="toggleNode('node-1dba8725')" style="cursor: pointer; opacity: 0.6;">
+            <g class="toggle-btn" onclick="toggleNode('node-69841e94')" style="cursor: pointer; opacity: 0.6;">
                 <circle cx="667.5" cy="15" r="7" fill="white" stroke="#adb5bd" stroke-width="1"/>
                 <text x="667.5" y="19" text-anchor="middle" font-size="10" font-weight="bold" fill="#adb5bd" style="pointer-events: none;">-</text>
             </g>
             
         
-            <g id="content-node-1dba8725" class="node-content" transform="translate(0, 5)">
-                <g transform="translate(15, 35)">
-        <rect class="box-rect" width="125.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+            <g id="content-node-69841e94" class="node-content" transform="translate(0, 5)">
+                <g class="row" transform="translate(0, 35)" data-y="35" data-row-h="42"><g transform="translate(15, 0)">
+        <rect class="box-rect" width="125.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             docfx.json
             <title>docfx.json</title>
         </text>
         
-        </g><g transform="translate(150.0, 35)">
-        <rect class="box-rect" width="120" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        </g><g transform="translate(150.0, 0)">
+        <rect class="box-rect" width="120" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             index.md
             <title>index.md</title>
         </text>
         
-        </g><g transform="translate(280.0, 35)">
-        <rect class="box-rect" width="167.5" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        </g><g transform="translate(280.0, 0)">
+        <rect class="box-rect" width="167.5" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             installation.md
             <title>installation.md</title>
         </text>
         
-        </g><g transform="translate(457.5, 35)">
-        <rect class="box-rect" width="210.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        </g><g transform="translate(457.5, 0)">
+        <rect class="box-rect" width="210.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             local-development.md
             <title>local-development.md</title>
         </text>
         
-        </g><g transform="translate(15, 87)">
-        <rect class="box-rect" width="150.5" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        </g></g><g class="row" transform="translate(0, 87)" data-y="87" data-row-h="42"><g transform="translate(15, 0)">
+        <rect class="box-rect" width="150.5" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             quickstart.md
             <title>quickstart.md</title>
         </text>
         
-        </g><g transform="translate(175.5, 87)">
-        <rect class="box-rect" width="120" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        </g><g transform="translate(175.5, 0)">
+        <rect class="box-rect" width="120" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             README.md
             <title>README.md</title>
         </text>
         
-        </g><g transform="translate(305.5, 87)">
-        <rect class="box-rect" width="120" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        </g><g transform="translate(305.5, 0)">
+        <rect class="box-rect" width="120" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             toc.yml
             <title>toc.yml</title>
         </text>
         
-        </g><g transform="translate(435.5, 87)">
-        <rect class="box-rect" width="125.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        </g><g transform="translate(435.5, 0)">
+        <rect class="box-rect" width="125.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             upgrade.md
             <title>upgrade.md</title>
         </text>
         
-        </g>
+        </g></g>
             </g>
         </g>
-        </g><g transform="translate(707.5, 87)">
-        <g class="node" id="node-13604cea">
+        </g><g transform="translate(707.5, 0)">
+        <g class="node" id="node-85c30bff">
             
-        <rect class="box-rect" width="197.5" height="92" stroke="#adb5bd" fill="#ffffff" rx="6" ry="6" />
+        <rect class="box-rect" width="197.5" height="92" stroke="#adb5bd" fill="#ffffff" rx="6" ry="6" data-full-h="92" />
         <use href="#folder" x="8" y="8" width="16" height="16" stroke="#adb5bd" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             memory
             <title>memory</title>
         </text>
         
-            <g class="toggle-btn" onclick="toggleNode('node-13604cea')" style="cursor: pointer; opacity: 0.6;">
+            <g class="toggle-btn" onclick="toggleNode('node-85c30bff')" style="cursor: pointer; opacity: 0.6;">
                 <circle cx="182.5" cy="15" r="7" fill="white" stroke="#adb5bd" stroke-width="1"/>
                 <text x="182.5" y="19" text-anchor="middle" font-size="10" font-weight="bold" fill="#adb5bd" style="pointer-events: none;">-</text>
             </g>
             
         
-            <g id="content-node-13604cea" class="node-content" transform="translate(0, 5)">
-                <g transform="translate(15, 35)">
-        <rect class="box-rect" width="167.5" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+            <g id="content-node-85c30bff" class="node-content" transform="translate(0, 5)">
+                <g class="row" transform="translate(0, 35)" data-y="35" data-row-h="42"><g transform="translate(15, 0)">
+        <rect class="box-rect" width="167.5" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             constitution.md
             <title>constitution.md</title>
         </text>
         
-        </g>
+        </g></g>
             </g>
         </g>
-        </g><g transform="translate(915.0, 87)">
-        <rect class="box-rect" width="159.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        </g><g transform="translate(915.0, 0)">
+        <rect class="box-rect" width="159.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             pyproject.toml
             <title>pyproject.toml</title>
         </text>
         
-        </g><g transform="translate(1084.0, 87)">
-        <rect class="box-rect" width="120" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        </g><g transform="translate(1084.0, 0)">
+        <rect class="box-rect" width="120" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             README.md
             <title>README.md</title>
         </text>
         
-        </g><g transform="translate(15, 241)">
-        <rect class="box-rect" width="133.5" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        </g></g><g class="row" transform="translate(0, 241)" data-y="241" data-row-h="708"><g transform="translate(15, 0)">
+        <rect class="box-rect" width="133.5" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             SECURITY.md
             <title>SECURITY.md</title>
         </text>
         
-        </g><g transform="translate(158.5, 241)">
-        <rect class="box-rect" width="159.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        </g><g transform="translate(158.5, 0)">
+        <rect class="box-rect" width="159.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             spec-driven.md
             <title>spec-driven.md</title>
         </text>
         
-        </g><g transform="translate(327.5, 241)">
-        <g class="node" id="node-4b13b95c">
+        </g><g transform="translate(327.5, 0)">
+        <g class="node" id="node-f92531c1">
             
-        <rect class="box-rect" width="860.0" height="708" stroke="#adb5bd" fill="#ffffff" rx="6" ry="6" />
+        <rect class="box-rect" width="860.0" height="708" stroke="#adb5bd" fill="#ffffff" rx="6" ry="6" data-full-h="708" />
         <use href="#folder" x="8" y="8" width="16" height="16" stroke="#adb5bd" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             src
             <title>src</title>
         </text>
         
-            <g class="toggle-btn" onclick="toggleNode('node-4b13b95c')" style="cursor: pointer; opacity: 0.6;">
+            <g class="toggle-btn" onclick="toggleNode('node-f92531c1')" style="cursor: pointer; opacity: 0.6;">
                 <circle cx="845.0" cy="15" r="7" fill="white" stroke="#adb5bd" stroke-width="1"/>
                 <text x="845.0" y="19" text-anchor="middle" font-size="10" font-weight="bold" fill="#adb5bd" style="pointer-events: none;">-</text>
             </g>
             
         
-            <g id="content-node-4b13b95c" class="node-content" transform="translate(0, 5)">
-                <g transform="translate(15, 35)">
-        <g class="node" id="node-7ea43d82">
+            <g id="content-node-f92531c1" class="node-content" transform="translate(0, 5)">
+                <g class="row" transform="translate(0, 35)" data-y="35" data-row-h="658"><g transform="translate(15, 0)">
+        <g class="node" id="node-93ab18dc">
             
-        <rect class="box-rect" width="830.0" height="658" stroke="#495057" fill="#f8f9fa" rx="6" ry="6" />
+        <rect class="box-rect" width="830.0" height="658" stroke="#495057" fill="#f8f9fa" rx="6" ry="6" data-full-h="658" />
         <use href="#package" x="8" y="8" width="16" height="16" stroke="#495057" />
         <text x="30" y="20" fill="#212529" style="font-weight: 700; font-size: 13px;">
             specify_cli
             <title>specify_cli</title>
         </text>
         
-            <g class="toggle-btn" onclick="toggleNode('node-7ea43d82')" style="cursor: pointer; opacity: 0.6;">
+            <g class="toggle-btn" onclick="toggleNode('node-93ab18dc')" style="cursor: pointer; opacity: 0.6;">
                 <circle cx="815.0" cy="15" r="7" fill="white" stroke="#495057" stroke-width="1"/>
                 <text x="815.0" y="19" text-anchor="middle" font-size="10" font-weight="bold" fill="#495057" style="pointer-events: none;">-</text>
             </g>
             
         
-            <g id="content-node-7ea43d82" class="node-content" transform="translate(0, 5)">
-                <g transform="translate(15, 35)">
-        <g class="node" id="node-86259313">
+            <g id="content-node-93ab18dc" class="node-content" transform="translate(0, 5)">
+                <g class="row" transform="translate(0, 35)" data-y="35" data-row-h="608"><g transform="translate(15, 0)">
+        <g class="node" id="node-3cfb5275">
             
-        <rect class="box-rect" width="800.0" height="608" stroke="#1971c2" fill="#e7f5ff" rx="6" ry="6" />
+        <rect class="box-rect" width="800.0" height="608" stroke="#1971c2" fill="#e7f5ff" rx="6" ry="6" data-full-h="608" />
         <use href="#file-code" x="8" y="8" width="16" height="16" stroke="#1971c2" />
         <text x="30" y="20" fill="#1864ab" style="font-weight: 700; font-size: 13px;">
             __init__.py
             <title>__init__.py</title>
         </text>
         
-            <g class="toggle-btn" onclick="toggleNode('node-86259313')" style="cursor: pointer; opacity: 0.6;">
+            <g class="toggle-btn" onclick="toggleNode('node-3cfb5275')" style="cursor: pointer; opacity: 0.6;">
                 <circle cx="785.0" cy="15" r="7" fill="white" stroke="#1971c2" stroke-width="1"/>
                 <text x="785.0" y="19" text-anchor="middle" font-size="10" font-weight="bold" fill="#1971c2" style="pointer-events: none;">-</text>
             </g>
             
         
-            <g id="content-node-86259313" class="node-content" transform="translate(0, 5)">
-                <g transform="translate(15, 35)">
-        <rect class="box-rect" width="150.5" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+            <g id="content-node-3cfb5275" class="node-content" transform="translate(0, 5)">
+                <g class="row" transform="translate(0, 35)" data-y="35" data-row-h="42"><g transform="translate(15, 0)">
+        <rect class="box-rect" width="150.5" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#f08c00" />
         <text x="30" y="20" fill="#e67700" style="font-weight: 700; font-size: 13px;">
             _github_token
             <title>_github_token</title>
         </text>
         
-        </g><g transform="translate(175.5, 35)">
-        <rect class="box-rect" width="210.0" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        </g><g transform="translate(175.5, 0)">
+        <rect class="box-rect" width="210.0" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#f08c00" />
         <text x="30" y="20" fill="#e67700" style="font-weight: 700; font-size: 13px;">
             _github_auth_headers
             <title>_github_auth_headers</title>
         </text>
         
-        </g><g transform="translate(395.5, 35)">
-        <rect class="box-rect" width="252.5" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        </g><g transform="translate(395.5, 0)">
+        <rect class="box-rect" width="252.5" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#f08c00" />
         <text x="30" y="20" fill="#e67700" style="font-weight: 700; font-size: 13px;">
             _parse_rate_limit_headers
             <title>_parse_rate_limit_headers</title>
         </text>
         
-        </g><g transform="translate(15, 87)">
-        <rect class="box-rect" width="244.0" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        </g></g><g class="row" transform="translate(0, 87)" data-y="87" data-row-h="42"><g transform="translate(15, 0)">
+        <rect class="box-rect" width="244.0" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#f08c00" />
         <text x="30" y="20" fill="#e67700" style="font-weight: 700; font-size: 13px;">
             _format_rate_limit_error
             <title>_format_rate_limit_error</title>
         </text>
         
-        </g><g transform="translate(15, 139)">
-        <g class="node" id="node-5b0c5875">
+        </g></g><g class="row" transform="translate(0, 139)" data-y="139" data-row-h="144"><g transform="translate(15, 0)">
+        <g class="node" id="node-65710b65">
             
-        <rect class="box-rect" width="709.0" height="144" stroke="#6741d9" fill="#f3f0ff" rx="6" ry="6" />
+        <rect class="box-rect" width="709.0" height="144" stroke="#6741d9" fill="#f3f0ff" rx="6" ry="6" data-full-h="144" />
         <use href="#box" x="8" y="8" width="16" height="16" stroke="#6741d9" />
         <text x="30" y="20" fill="#5f3dc4" style="font-weight: 700; font-size: 13px;">
             StepTracker
             <title>StepTracker</title>
         </text>
         
-            <g class="toggle-btn" onclick="toggleNode('node-5b0c5875')" style="cursor: pointer; opacity: 0.6;">
+            <g class="toggle-btn" onclick="toggleNode('node-65710b65')" style="cursor: pointer; opacity: 0.6;">
                 <circle cx="694.0" cy="15" r="7" fill="white" stroke="#6741d9" stroke-width="1"/>
                 <text x="694.0" y="19" text-anchor="middle" font-size="10" font-weight="bold" fill="#6741d9" style="pointer-events: none;">-</text>
             </g>
             
         
-            <g id="content-node-5b0c5875" class="node-content" transform="translate(0, 5)">
-                <g transform="translate(15, 35)">
-        <rect class="box-rect" width="120" height="42" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" />
+            <g id="content-node-65710b65" class="node-content" transform="translate(0, 5)">
+                <g class="row" transform="translate(0, 35)" data-y="35" data-row-h="42"><g transform="translate(15, 0)">
+        <rect class="box-rect" width="120" height="42" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#c2255c" />
         <text x="30" y="20" fill="#a61e4d" style="font-weight: 700; font-size: 13px;">
             __init__
             <title>__init__</title>
         </text>
         
-        </g><g transform="translate(145, 35)">
-        <rect class="box-rect" width="159.0" height="42" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" />
+        </g><g transform="translate(145, 0)">
+        <rect class="box-rect" width="159.0" height="42" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#c2255c" />
         <text x="30" y="20" fill="#a61e4d" style="font-weight: 700; font-size: 13px;">
             attach_refresh
             <title>attach_refresh</title>
         </text>
         
-        </g><g transform="translate(314.0, 35)">
-        <rect class="box-rect" width="120" height="42" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" />
+        </g><g transform="translate(314.0, 0)">
+        <rect class="box-rect" width="120" height="42" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#c2255c" />
         <text x="30" y="20" fill="#a61e4d" style="font-weight: 700; font-size: 13px;">
             add
             <title>add</title>
         </text>
         
-        </g><g transform="translate(444.0, 35)">
-        <rect class="box-rect" width="120" height="42" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" />
+        </g><g transform="translate(444.0, 0)">
+        <rect class="box-rect" width="120" height="42" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#c2255c" />
         <text x="30" y="20" fill="#a61e4d" style="font-weight: 700; font-size: 13px;">
             start
             <title>start</title>
         </text>
         
-        </g><g transform="translate(574.0, 35)">
-        <rect class="box-rect" width="120" height="42" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" />
+        </g><g transform="translate(574.0, 0)">
+        <rect class="box-rect" width="120" height="42" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#c2255c" />
         <text x="30" y="20" fill="#a61e4d" style="font-weight: 700; font-size: 13px;">
             complete
             <title>complete</title>
         </text>
         
-        </g><g transform="translate(15, 87)">
-        <rect class="box-rect" width="120" height="42" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" />
+        </g></g><g class="row" transform="translate(0, 87)" data-y="87" data-row-h="42"><g transform="translate(15, 0)">
+        <rect class="box-rect" width="120" height="42" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#c2255c" />
         <text x="30" y="20" fill="#a61e4d" style="font-weight: 700; font-size: 13px;">
             error
             <title>error</title>
         </text>
         
-        </g><g transform="translate(145, 87)">
-        <rect class="box-rect" width="120" height="42" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" />
+        </g><g transform="translate(145, 0)">
+        <rect class="box-rect" width="120" height="42" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#c2255c" />
         <text x="30" y="20" fill="#a61e4d" style="font-weight: 700; font-size: 13px;">
             skip
             <title>skip</title>
         </text>
         
-        </g><g transform="translate(275, 87)">
-        <rect class="box-rect" width="120" height="42" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" />
+        </g><g transform="translate(275, 0)">
+        <rect class="box-rect" width="120" height="42" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#c2255c" />
         <text x="30" y="20" fill="#a61e4d" style="font-weight: 700; font-size: 13px;">
             _update
             <title>_update</title>
         </text>
         
-        </g><g transform="translate(405, 87)">
-        <rect class="box-rect" width="159.0" height="42" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" />
+        </g><g transform="translate(405, 0)">
+        <rect class="box-rect" width="159.0" height="42" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#c2255c" />
         <text x="30" y="20" fill="#a61e4d" style="font-weight: 700; font-size: 13px;">
             _maybe_refresh
             <title>_maybe_refresh</title>
         </text>
         
-        </g><g transform="translate(574.0, 87)">
-        <rect class="box-rect" width="120" height="42" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" />
+        </g><g transform="translate(574.0, 0)">
+        <rect class="box-rect" width="120" height="42" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#c2255c" />
         <text x="30" y="20" fill="#a61e4d" style="font-weight: 700; font-size: 13px;">
             render
             <title>render</title>
         </text>
         
-        </g>
+        </g></g>
             </g>
         </g>
-        </g><g transform="translate(15, 293)">
-        <rect class="box-rect" width="120" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        </g></g><g class="row" transform="translate(0, 293)" data-y="293" data-row-h="92"><g transform="translate(15, 0)">
+        <rect class="box-rect" width="120" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#f08c00" />
         <text x="30" y="20" fill="#e67700" style="font-weight: 700; font-size: 13px;">
             get_key
             <title>get_key</title>
         </text>
         
-        </g><g transform="translate(145, 293)">
-        <rect class="box-rect" width="193.0" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        </g><g transform="translate(145, 0)">
+        <rect class="box-rect" width="193.0" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#f08c00" />
         <text x="30" y="20" fill="#e67700" style="font-weight: 700; font-size: 13px;">
             select_with_arrows
             <title>select_with_arrows</title>
         </text>
         
-        </g><g transform="translate(348.0, 293)">
-        <g class="node" id="node-a8f33737">
+        </g><g transform="translate(348.0, 0)">
+        <g class="node" id="node-2826dd2d">
             
-        <rect class="box-rect" width="163.5" height="92" stroke="#6741d9" fill="#f3f0ff" rx="6" ry="6" />
+        <rect class="box-rect" width="163.5" height="92" stroke="#6741d9" fill="#f3f0ff" rx="6" ry="6" data-full-h="92" />
         <use href="#box" x="8" y="8" width="16" height="16" stroke="#6741d9" />
         <text x="30" y="20" fill="#5f3dc4" style="font-weight: 700; font-size: 13px;">
             BannerGroup
             <title>BannerGroup</title>
         </text>
         
-            <g class="toggle-btn" onclick="toggleNode('node-a8f33737')" style="cursor: pointer; opacity: 0.6;">
+            <g class="toggle-btn" onclick="toggleNode('node-2826dd2d')" style="cursor: pointer; opacity: 0.6;">
                 <circle cx="148.5" cy="15" r="7" fill="white" stroke="#6741d9" stroke-width="1"/>
                 <text x="148.5" y="19" text-anchor="middle" font-size="10" font-weight="bold" fill="#6741d9" style="pointer-events: none;">-</text>
             </g>
             
         
-            <g id="content-node-a8f33737" class="node-content" transform="translate(0, 5)">
-                <g transform="translate(15, 35)">
-        <rect class="box-rect" width="133.5" height="42" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" />
+            <g id="content-node-2826dd2d" class="node-content" transform="translate(0, 5)">
+                <g class="row" transform="translate(0, 35)" data-y="35" data-row-h="42"><g transform="translate(15, 0)">
+        <rect class="box-rect" width="133.5" height="42" stroke="#c2255c" fill="#fff0f6" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#c2255c" />
         <text x="30" y="20" fill="#a61e4d" style="font-weight: 700; font-size: 13px;">
             format_help
             <title>format_help</title>
         </text>
         
-        </g>
+        </g></g>
             </g>
         </g>
-        </g><g transform="translate(521.5, 293)">
-        <rect class="box-rect" width="133.5" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        </g><g transform="translate(521.5, 0)">
+        <rect class="box-rect" width="133.5" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#f08c00" />
         <text x="30" y="20" fill="#e67700" style="font-weight: 700; font-size: 13px;">
             show_banner
             <title>show_banner</title>
         </text>
         
-        </g><g transform="translate(665.0, 293)">
-        <rect class="box-rect" width="120" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        </g><g transform="translate(665.0, 0)">
+        <rect class="box-rect" width="120" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#f08c00" />
         <text x="30" y="20" fill="#e67700" style="font-weight: 700; font-size: 13px;">
             callback
             <title>callback</title>
         </text>
         
-        </g><g transform="translate(15, 395)">
-        <rect class="box-rect" width="133.5" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        </g></g><g class="row" transform="translate(0, 395)" data-y="395" data-row-h="42"><g transform="translate(15, 0)">
+        <rect class="box-rect" width="133.5" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#f08c00" />
         <text x="30" y="20" fill="#e67700" style="font-weight: 700; font-size: 13px;">
             run_command
             <title>run_command</title>
         </text>
         
-        </g><g transform="translate(158.5, 395)">
-        <rect class="box-rect" width="125.0" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        </g><g transform="translate(158.5, 0)">
+        <rect class="box-rect" width="125.0" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#f08c00" />
         <text x="30" y="20" fill="#e67700" style="font-weight: 700; font-size: 13px;">
             check_tool
             <title>check_tool</title>
         </text>
         
-        </g><g transform="translate(293.5, 395)">
-        <rect class="box-rect" width="133.5" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        </g><g transform="translate(293.5, 0)">
+        <rect class="box-rect" width="133.5" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#f08c00" />
         <text x="30" y="20" fill="#e67700" style="font-weight: 700; font-size: 13px;">
             is_git_repo
             <title>is_git_repo</title>
         </text>
         
-        </g><g transform="translate(437.0, 395)">
-        <rect class="box-rect" width="150.5" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        </g><g transform="translate(437.0, 0)">
+        <rect class="box-rect" width="150.5" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#f08c00" />
         <text x="30" y="20" fill="#e67700" style="font-weight: 700; font-size: 13px;">
             init_git_repo
             <title>init_git_repo</title>
         </text>
         
-        </g><g transform="translate(15, 447)">
-        <rect class="box-rect" width="227.0" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        </g></g><g class="row" transform="translate(0, 447)" data-y="447" data-row-h="42"><g transform="translate(15, 0)">
+        <rect class="box-rect" width="227.0" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#f08c00" />
         <text x="30" y="20" fill="#e67700" style="font-weight: 700; font-size: 13px;">
             handle_vscode_settings
             <title>handle_vscode_settings</title>
         </text>
         
-        </g><g transform="translate(252.0, 447)">
-        <rect class="box-rect" width="176.0" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        </g><g transform="translate(252.0, 0)">
+        <rect class="box-rect" width="176.0" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#f08c00" />
         <text x="30" y="20" fill="#e67700" style="font-weight: 700; font-size: 13px;">
             merge_json_files
             <title>merge_json_files</title>
         </text>
         
-        </g><g transform="translate(438.0, 447)">
-        <rect class="box-rect" width="286.5" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        </g><g transform="translate(438.0, 0)">
+        <rect class="box-rect" width="286.5" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#f08c00" />
         <text x="30" y="20" fill="#e67700" style="font-weight: 700; font-size: 13px;">
             download_template_from_github
             <title>download_template_from_github</title>
         </text>
         
-        </g><g transform="translate(15, 499)">
-        <rect class="box-rect" width="286.5" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        </g></g><g class="row" transform="translate(0, 499)" data-y="499" data-row-h="42"><g transform="translate(15, 0)">
+        <rect class="box-rect" width="286.5" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#f08c00" />
         <text x="30" y="20" fill="#e67700" style="font-weight: 700; font-size: 13px;">
             download_and_extract_template
             <title>download_and_extract_template</title>
         </text>
         
-        </g><g transform="translate(311.5, 499)">
-        <rect class="box-rect" width="252.5" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        </g><g transform="translate(311.5, 0)">
+        <rect class="box-rect" width="252.5" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#f08c00" />
         <text x="30" y="20" fill="#e67700" style="font-weight: 700; font-size: 13px;">
             ensure_executable_scripts
             <title>ensure_executable_scripts</title>
         </text>
         
-        </g><g transform="translate(574.0, 499)">
-        <rect class="box-rect" width="120" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        </g><g transform="translate(574.0, 0)">
+        <rect class="box-rect" width="120" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#f08c00" />
         <text x="30" y="20" fill="#e67700" style="font-weight: 700; font-size: 13px;">
             init
             <title>init</title>
         </text>
         
-        </g><g transform="translate(15, 551)">
-        <rect class="box-rect" width="120" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        </g></g><g class="row" transform="translate(0, 551)" data-y="551" data-row-h="42"><g transform="translate(15, 0)">
+        <rect class="box-rect" width="120" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#f08c00" />
         <text x="30" y="20" fill="#e67700" style="font-weight: 700; font-size: 13px;">
             check
             <title>check</title>
         </text>
         
-        </g><g transform="translate(145, 551)">
-        <rect class="box-rect" width="120" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        </g><g transform="translate(145, 0)">
+        <rect class="box-rect" width="120" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#f08c00" />
         <text x="30" y="20" fill="#e67700" style="font-weight: 700; font-size: 13px;">
             version
             <title>version</title>
         </text>
         
-        </g><g transform="translate(275, 551)">
-        <rect class="box-rect" width="120" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" />
+        </g><g transform="translate(275, 0)">
+        <rect class="box-rect" width="120" height="42" stroke="#f08c00" fill="#fff9db" rx="6" ry="6" data-full-h="42" />
         <use href="#terminal" x="8" y="8" width="16" height="16" stroke="#f08c00" />
         <text x="30" y="20" fill="#e67700" style="font-weight: 700; font-size: 13px;">
             main
             <title>main</title>
         </text>
         
-        </g>
+        </g></g>
             </g>
         </g>
-        </g>
+        </g></g>
             </g>
         </g>
-        </g>
+        </g></g>
             </g>
         </g>
-        </g><g transform="translate(15, 959)">
-        <rect class="box-rect" width="125.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        </g></g><g class="row" transform="translate(0, 959)" data-y="959" data-row-h="298"><g transform="translate(15, 0)">
+        <rect class="box-rect" width="125.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             SUPPORT.md
             <title>SUPPORT.md</title>
         </text>
         
-        </g><g transform="translate(150.0, 959)">
-        <g class="node" id="node-d3253328">
+        </g><g transform="translate(150.0, 0)">
+        <g class="node" id="node-730409fd">
             
-        <rect class="box-rect" width="806.5" height="298" stroke="#adb5bd" fill="#ffffff" rx="6" ry="6" />
+        <rect class="box-rect" width="806.5" height="298" stroke="#adb5bd" fill="#ffffff" rx="6" ry="6" data-full-h="298" />
         <use href="#folder" x="8" y="8" width="16" height="16" stroke="#adb5bd" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             templates
             <title>templates</title>
         </text>
         
-            <g class="toggle-btn" onclick="toggleNode('node-d3253328')" style="cursor: pointer; opacity: 0.6;">
+            <g class="toggle-btn" onclick="toggleNode('node-730409fd')" style="cursor: pointer; opacity: 0.6;">
                 <circle cx="791.5" cy="15" r="7" fill="white" stroke="#adb5bd" stroke-width="1"/>
                 <text x="791.5" y="19" text-anchor="middle" font-size="10" font-weight="bold" fill="#adb5bd" style="pointer-events: none;">-</text>
             </g>
             
         
-            <g id="content-node-d3253328" class="node-content" transform="translate(0, 5)">
-                <g transform="translate(15, 35)">
-        <rect class="box-rect" width="227.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+            <g id="content-node-730409fd" class="node-content" transform="translate(0, 5)">
+                <g class="row" transform="translate(0, 35)" data-y="35" data-row-h="42"><g transform="translate(15, 0)">
+        <rect class="box-rect" width="227.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             agent-file-template.md
             <title>agent-file-template.md</title>
         </text>
         
-        </g><g transform="translate(252.0, 35)">
-        <rect class="box-rect" width="218.5" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        </g><g transform="translate(252.0, 0)">
+        <rect class="box-rect" width="218.5" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             checklist-template.md
             <title>checklist-template.md</title>
         </text>
         
-        </g><g transform="translate(15, 87)">
-        <g class="node" id="node-43728b58">
+        </g></g><g class="row" transform="translate(0, 87)" data-y="87" data-row-h="144"><g transform="translate(15, 0)">
+        <g class="node" id="node-56555775">
             
-        <rect class="box-rect" width="771.5" height="144" stroke="#adb5bd" fill="#ffffff" rx="6" ry="6" />
+        <rect class="box-rect" width="771.5" height="144" stroke="#adb5bd" fill="#ffffff" rx="6" ry="6" data-full-h="144" />
         <use href="#folder" x="8" y="8" width="16" height="16" stroke="#adb5bd" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             commands
             <title>commands</title>
         </text>
         
-            <g class="toggle-btn" onclick="toggleNode('node-43728b58')" style="cursor: pointer; opacity: 0.6;">
+            <g class="toggle-btn" onclick="toggleNode('node-56555775')" style="cursor: pointer; opacity: 0.6;">
                 <circle cx="756.5" cy="15" r="7" fill="white" stroke="#adb5bd" stroke-width="1"/>
                 <text x="756.5" y="19" text-anchor="middle" font-size="10" font-weight="bold" fill="#adb5bd" style="pointer-events: none;">-</text>
             </g>
             
         
-            <g id="content-node-43728b58" class="node-content" transform="translate(0, 5)">
-                <g transform="translate(15, 35)">
-        <rect class="box-rect" width="125.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+            <g id="content-node-56555775" class="node-content" transform="translate(0, 5)">
+                <g class="row" transform="translate(0, 35)" data-y="35" data-row-h="42"><g transform="translate(15, 0)">
+        <rect class="box-rect" width="125.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             analyze.md
             <title>analyze.md</title>
         </text>
         
-        </g><g transform="translate(150.0, 35)">
-        <rect class="box-rect" width="142.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        </g><g transform="translate(150.0, 0)">
+        <rect class="box-rect" width="142.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             checklist.md
             <title>checklist.md</title>
         </text>
         
-        </g><g transform="translate(302.0, 35)">
-        <rect class="box-rect" width="125.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        </g><g transform="translate(302.0, 0)">
+        <rect class="box-rect" width="125.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             clarify.md
             <title>clarify.md</title>
         </text>
         
-        </g><g transform="translate(437.0, 35)">
-        <rect class="box-rect" width="167.5" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        </g><g transform="translate(437.0, 0)">
+        <rect class="box-rect" width="167.5" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             constitution.md
             <title>constitution.md</title>
         </text>
         
-        </g><g transform="translate(614.5, 35)">
-        <rect class="box-rect" width="142.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        </g><g transform="translate(614.5, 0)">
+        <rect class="box-rect" width="142.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             implement.md
             <title>implement.md</title>
         </text>
         
-        </g><g transform="translate(15, 87)">
-        <rect class="box-rect" width="120" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        </g></g><g class="row" transform="translate(0, 87)" data-y="87" data-row-h="42"><g transform="translate(15, 0)">
+        <rect class="box-rect" width="120" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             plan.md
             <title>plan.md</title>
         </text>
         
-        </g><g transform="translate(145, 87)">
-        <rect class="box-rect" width="125.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        </g><g transform="translate(145, 0)">
+        <rect class="box-rect" width="125.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             specify.md
             <title>specify.md</title>
         </text>
         
-        </g><g transform="translate(280.0, 87)">
-        <rect class="box-rect" width="120" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        </g><g transform="translate(280.0, 0)">
+        <rect class="box-rect" width="120" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             tasks.md
             <title>tasks.md</title>
         </text>
         
-        </g><g transform="translate(410.0, 87)">
-        <rect class="box-rect" width="176.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        </g><g transform="translate(410.0, 0)">
+        <rect class="box-rect" width="176.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             taskstoissues.md
             <title>taskstoissues.md</title>
         </text>
         
-        </g>
+        </g></g>
             </g>
         </g>
-        </g><g transform="translate(15, 241)">
-        <rect class="box-rect" width="176.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        </g></g><g class="row" transform="translate(0, 241)" data-y="241" data-row-h="42"><g transform="translate(15, 0)">
+        <rect class="box-rect" width="176.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             plan-template.md
             <title>plan-template.md</title>
         </text>
         
-        </g><g transform="translate(201.0, 241)">
-        <rect class="box-rect" width="176.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        </g><g transform="translate(201.0, 0)">
+        <rect class="box-rect" width="176.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             spec-template.md
             <title>spec-template.md</title>
         </text>
         
-        </g><g transform="translate(387.0, 241)">
-        <rect class="box-rect" width="184.5" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        </g><g transform="translate(387.0, 0)">
+        <rect class="box-rect" width="184.5" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             tasks-template.md
             <title>tasks-template.md</title>
         </text>
         
-        </g><g transform="translate(581.5, 241)">
-        <rect class="box-rect" width="210.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" />
+        </g><g transform="translate(581.5, 0)">
+        <rect class="box-rect" width="210.0" height="42" stroke="#868e96" fill="#f1f3f5" rx="6" ry="6" data-full-h="42" />
         <use href="#file-text" x="8" y="8" width="16" height="16" stroke="#868e96" />
         <text x="30" y="20" fill="#495057" style="font-weight: 700; font-size: 13px;">
             vscode-settings.json
             <title>vscode-settings.json</title>
         </text>
         
-        </g>
+        </g></g>
             </g>
         </g>
-        </g>
+        </g></g>
             </g>
         </g>
         
@@ -984,13 +1056,35 @@
             const x = (parentWidth - bbox.width * scale) / 2 - bbox.x * scale;
             const y = (parentHeight - bbox.height * scale) / 2 - bbox.y * scale;
             
-            panzoom.zoom(scale);
-            panzoom.pan(x / scale, y / scale);
+            panzoom.pan(x, y, { animate: true });
+            panzoom.zoom(scale, { animate: true });
+        }
+
+        // Expand All Nodes - Reload page to get pristine expanded state
+        window.expandAll = function() {
+            // Reloading the page restores all nodes to their original expanded state
+            // This avoids accumulated reflow calculation errors
+            location.reload();
+        }
+
+        // Collapse All Nodes
+        window.collapseAll = function() {
+            const allNodes = document.querySelectorAll('.node');
+            // Reverse order to collapse children first (bottom-up)
+            const nodesArray = Array.from(allNodes).reverse();
             
+            nodesArray.forEach(node => {
+                const content = document.getElementById('content-' + node.id);
+                if (content && content.style.display !== 'none') {
+                    // This node is expanded, collapse it
+                    window.toggleNode(node.id);
+                }
+            });
+            
+            // Auto-fit after collapse for better view
             setTimeout(() => {
-                 panzoom.zoom(scale);
-                 panzoom.pan(x / scale, y / scale);
-            }, 10);
+                fitToScreen();
+            }, 400);
         }
 
         // Search Logic
@@ -1036,27 +1130,110 @@
             });
         }
 
-        // Collapse/Expand Logic
+        function getTranslateY(el) {
+            const transform = el.getAttribute('transform') || '';
+            const match = /translate\([^,]+,\s*([^)]+)\)/.exec(transform);
+            return match ? parseFloat(match[1]) : 0;
+        }
+
+        function setTranslateY(el, y) {
+            const transform = el.getAttribute('transform') || '';
+            // Handle translate(x, y)
+            const newTransform = transform.replace(/(translate\([^,]+,)\s*[^)]+\)/, `$1 ${y})`);
+            el.setAttribute('transform', newTransform);
+            el.setAttribute('data-y', y);
+        }
+
+        function getRowHeight(rowEl) {
+            let maxH = 0;
+            const items = rowEl.children; // <g transform>
+            for (let itm of items) {
+                const rect = itm.querySelector('.box-rect');
+                if (rect) {
+                    maxH = Math.max(maxH, parseFloat(rect.getAttribute('height')));
+                }
+            }
+            return maxH;
+        }
+
+        // Collapse/Expand Logic with ULTRATHINK Smart Reflow (V2.5)
+        // This engine ensures row-height is always max(children), preventing row collisions.
         window.toggleNode = function(nodeId) {
+            const nodeG = document.getElementById(nodeId);
             const content = document.getElementById('content-' + nodeId);
-            const node = document.getElementById(nodeId);
-            const btnText = node.querySelector('.toggle-btn text');
+            const rect = nodeG.querySelector('.box-rect');
+            const btnText = nodeG.querySelector('.toggle-btn text');
+            const row = nodeG.parentElement.parentElement; // node -> g-wrapper -> row
             
-            if (content.style.display === 'none') {
-                // Expand
+            const headerH = 35; 
+            const fullH = parseFloat(rect.getAttribute('data-full-h'));
+            const isExpanding = (content.style.display === 'none');
+
+            // 1. Record OLD row height
+            const oldRowH = parseFloat(row.getAttribute('data-row-h'));
+
+            // 2. Perform Toggle
+            if (isExpanding) {
                 content.style.display = 'block';
                 btnText.textContent = '-';
-                node.classList.remove('collapsed');
+                rect.setAttribute('height', fullH);
+                nodeG.classList.remove('collapsed');
             } else {
-                // Collapse
                 content.style.display = 'none';
                 btnText.textContent = '+';
-                node.classList.add('collapsed');
+                rect.setAttribute('height', headerH);
+                nodeG.classList.add('collapsed');
             }
-            
-            // Note: Since SVG elements don't auto-reflow, the parent box will remain large.
-            // This is "Ghost Mode" collapsing, which clears visual noise but preserves layout.
+
+            // 3. Calculate NEW row height and EFFECTIVE delta
+            const newRowH = getRowHeight(row);
+            const effectiveDelta = newRowH - oldRowH;
+
+            if (Math.abs(effectiveDelta) > 0.01) {
+                row.setAttribute('data-row-h', newRowH);
+                propagateReflow(row, effectiveDelta);
+            }
         };
+
+        function propagateReflow(row, delta) {
+            const container = row.parentElement; // The content-<id> group
+            
+            if (container && container.classList.contains('node-content')) {
+                // Shift subsequent rows
+                const targetRowY = parseFloat(row.getAttribute('data-y') || 0);
+                const siblings = container.children;
+                for (let r of siblings) {
+                    const rowY = parseFloat(r.getAttribute('data-y') || 0);
+                    if (rowY > targetRowY) {
+                        const currentY = getTranslateY(r);
+                        setTranslateY(r, currentY + delta);
+                    }
+                }
+                
+                // Shrink parent and recurse
+                const parentNodeG = container.parentElement;
+                if (parentNodeG && parentNodeG.classList.contains('node')) {
+                    const parentRect = parentNodeG.querySelector('.box-rect');
+                    const currentH = parseFloat(parentRect.getAttribute('height'));
+                    const newH = currentH + delta;
+                    parentRect.setAttribute('height', newH);
+                    
+                    // Parent row might also shrink? 
+                    // Reflow needs to affect the row the parent belongs to
+                    const parentRow = parentNodeG.parentElement.parentElement;
+                    if (parentRow && parentRow.classList.contains('row')) {
+                        const pOldH = parseFloat(parentRow.getAttribute('data-row-h'));
+                        const pNewH = getRowHeight(parentRow);
+                        const pDelta = pNewH - pOldH;
+                        
+                        if (Math.abs(pDelta) > 0.01) {
+                            parentRow.setAttribute('data-row-h', pNewH);
+                            propagateReflow(parentRow, pDelta);
+                        }
+                    }
+                }
+            }
+        }
 
         searchInput.addEventListener('input', (e) => {
             performSearch(e.target.value);

@@ -60,25 +60,61 @@ class SVGRenderer:
 
         header {{
             position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 100;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
             background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            padding: 8px 16px;
-            border-radius: 50px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            border: 1px solid rgba(0,0,0,0.05);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.03);
             display: flex;
             align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            z-index: 1000;
             gap: 20px;
         }}
         
         .brand {{
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 14px;
+            flex-shrink: 0;
+        }}
+
+        .header-controls {{
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-shrink: 0;
+        }}
+
+        .header-btn {{
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: white;
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            color: #1e293b;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }}
+
+        .header-btn:hover {{
+            background: #f8fafc;
+            border-color: rgba(59, 130, 246, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }}
+
+        .header-btn svg {{
+            opacity: 0.7;
         }}
 
         h1 {{ margin: 0; font-size: 1.1rem; font-weight: 800; color: var(--text-primary); }}
@@ -108,7 +144,17 @@ class SVGRenderer:
             opacity: 0.4;
         }}
 
-        #viewport {{ width: 100vw; height: 100vh; cursor: grab; }}
+        #viewport {{ 
+            position: fixed;
+            top: 70px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100vw; 
+            height: calc(100vh - 70px); 
+            cursor: grab; 
+            overflow: hidden;
+        }}
         .box-rect {{ transition: all 0.3s ease; }}
         
         .node {{ transition: opacity 0.3s ease; }}
@@ -230,7 +276,25 @@ class SVGRenderer:
     <header>
         <div class="brand">
             <h1>Code Big Picture</h1>
-            <div class="badge">V2.5</div>
+            <div class="badge">V3.0</div>
+        </div>
+        
+        <div class="header-controls">
+            <button class="header-btn" onclick="collapseAll()" title="بستن همه نودها">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="9" y1="12" x2="15" y2="12"></line>
+                </svg>
+                بستن همه
+            </button>
+            <button class="header-btn" onclick="expandAll()" title="باز کردن همه نودها">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="12" y1="8" x2="12" y2="16"></line>
+                    <line x1="8" y1="12" x2="16" y2="12"></line>
+                </svg>
+                باز کردن همه
+            </button>
         </div>
         
         <div class="search-container">
@@ -304,13 +368,46 @@ class SVGRenderer:
             const x = (parentWidth - bbox.width * scale) / 2 - bbox.x * scale;
             const y = (parentHeight - bbox.height * scale) / 2 - bbox.y * scale;
             
-            panzoom.zoom(scale);
-            panzoom.pan(x / scale, y / scale);
+            panzoom.pan(x, y, {{ animate: true }});
+            panzoom.zoom(scale, {{ animate: true }});
+        }}
+
+        // Expand All Nodes - Toggle all collapsed nodes
+        window.expandAll = function() {{
+            const allNodes = document.querySelectorAll('.node');
+            // Expand from top to bottom (parent first)
+            allNodes.forEach(node => {{
+                const content = document.getElementById('content-' + node.id);
+                if (content && content.style.display === 'none') {{
+                    // This node is collapsed, expand it
+                    window.toggleNode(node.id);
+                }}
+            }});
             
+            // Auto-fit after expansion
             setTimeout(() => {{
-                 panzoom.zoom(scale);
-                 panzoom.pan(x / scale, y / scale);
-            }}, 10);
+                fitToScreen();
+            }}, 400);
+        }}
+
+        // Collapse All Nodes
+        window.collapseAll = function() {{
+            const allNodes = document.querySelectorAll('.node');
+            // Reverse order to collapse children first (bottom-up)
+            const nodesArray = Array.from(allNodes).reverse();
+            
+            nodesArray.forEach(node => {{
+                const content = document.getElementById('content-' + node.id);
+                if (content && content.style.display !== 'none') {{
+                    // This node is expanded, collapse it
+                    window.toggleNode(node.id);
+                }}
+            }});
+            
+            // Auto-fit after collapse for better view
+            setTimeout(() => {{
+                fitToScreen();
+            }}, 400);
         }}
 
         // Search Logic
@@ -382,84 +479,118 @@ class SVGRenderer:
             return maxH;
         }}
 
-        // Collapse/Expand Logic with ULTRATHINK Smart Reflow (V2.5)
-        // This engine ensures row-height is always max(children), preventing row collisions.
-        window.toggleNode = function(nodeId) {{
-            const nodeG = document.getElementById(nodeId);
-            const content = document.getElementById('content-' + nodeId);
+        // ========================================
+        // V3.0 DYNAMIC HEIGHT CALCULATION ENGINE
+        // ========================================
+        // Instead of using stored data-full-h, we calculate actual height
+        // based on current visible children state.
+
+        function calculateActualNodeHeight(nodeG) {{
+            const content = document.getElementById('content-' + nodeG.id);
             const rect = nodeG.querySelector('.box-rect');
-            const btnText = nodeG.querySelector('.toggle-btn text');
-            const row = nodeG.parentElement.parentElement; // node -> g-wrapper -> row
             
-            const headerH = 35; 
-            const fullH = parseFloat(rect.getAttribute('data-full-h'));
-            const isExpanding = (content.style.display === 'none');
-
-            // 1. Record OLD row height
-            const oldRowH = parseFloat(row.getAttribute('data-row-h'));
-
-            // 2. Perform Toggle
-            if (isExpanding) {{
-                content.style.display = 'block';
-                btnText.textContent = '-';
-                rect.setAttribute('height', fullH);
-                nodeG.classList.remove('collapsed');
-            }} else {{
-                content.style.display = 'none';
-                btnText.textContent = '+';
-                rect.setAttribute('height', headerH);
-                nodeG.classList.add('collapsed');
+            if (!content || content.style.display === 'none') {{
+                return 35; // Header only (collapsed)
             }}
-
-            // 3. Calculate NEW row height and EFFECTIVE delta
-            const newRowH = getRowHeight(row);
-            const effectiveDelta = newRowH - oldRowH;
-
-            if (Math.abs(effectiveDelta) > 0.01) {{
-                row.setAttribute('data-row-h', newRowH);
-                propagateReflow(row, effectiveDelta);
-            }}
-        }};
-
-        function propagateReflow(row, delta) {{
-            const container = row.parentElement; // The content-<id> group
             
-            if (container && container.classList.contains('node-content')) {{
-                // Shift subsequent rows
-                const targetRowY = parseFloat(row.getAttribute('data-y') || 0);
-                const siblings = container.children;
-                for (let r of siblings) {{
-                    const rowY = parseFloat(r.getAttribute('data-y') || 0);
-                    if (rowY > targetRowY) {{
-                        const currentY = getTranslateY(r);
-                        setTranslateY(r, currentY + delta);
-                    }}
-                }}
+            // Content is visible, calculate actual height from rows
+            const headerH = 35;
+            const margin = 8;
+            let contentHeight = 0;
+            
+            const rows = content.querySelectorAll(':scope > .row');
+            for (let row of rows) {{
+                const rowH = getRowHeight(row);
+                contentHeight += rowH + margin;
+            }}
+            
+            return headerH + contentHeight;
+        }}
+
+        function repositionRows(container) {{
+            const headerH = 35;
+            const margin = 8;
+            let y = headerH;
+            
+            const rows = container.querySelectorAll(':scope > .row');
+            for (let row of rows) {{
+                const rowH = getRowHeight(row);
+                row.setAttribute('data-row-h', rowH);
+                row.setAttribute('data-y', y);
                 
-                // Shrink parent and recurse
-                const parentNodeG = container.parentElement;
-                if (parentNodeG && parentNodeG.classList.contains('node')) {{
-                    const parentRect = parentNodeG.querySelector('.box-rect');
-                    const currentH = parseFloat(parentRect.getAttribute('height'));
-                    const newH = currentH + delta;
-                    parentRect.setAttribute('height', newH);
+                // Update transform to new Y position
+                const currentTransform = row.getAttribute('transform') || '';
+                // Replace the translate Y value
+                const xMatch = /translate\(([^,]+),/.exec(currentTransform);
+                const xVal = xMatch ? xMatch[1] : '0';
+                row.setAttribute('transform', `translate(${{xVal}}, ${{y}})`);
+                
+                y += rowH + margin;
+            }}
+        }}
+
+        function recalculateFromNode(nodeG) {{
+            const content = document.getElementById('content-' + nodeG.id);
+            const rect = nodeG.querySelector('.box-rect');
+            
+            if (!rect) return;
+            
+            // Calculate actual height based on current state
+            const newH = calculateActualNodeHeight(nodeG);
+            rect.setAttribute('height', newH);
+            
+            // Reposition rows within this node if content is visible
+            if (content && content.style.display !== 'none') {{
+                repositionRows(content);
+            }}
+            
+            // Propagate to parent node
+            const wrapper = nodeG.parentElement;
+            const row = wrapper ? wrapper.parentElement : null;
+            
+            if (row && row.classList.contains('row')) {{
+                // Update this row's height
+                const newRowH = getRowHeight(row);
+                row.setAttribute('data-row-h', newRowH);
+                
+                // Reposition all sibling rows in parent container
+                const container = row.parentElement;
+                if (container && container.classList.contains('node-content')) {{
+                    repositionRows(container);
                     
-                    // Parent row might also shrink? 
-                    // Reflow needs to affect the row the parent belongs to
-                    const parentRow = parentNodeG.parentElement.parentElement;
-                    if (parentRow && parentRow.classList.contains('row')) {{
-                        const pOldH = parseFloat(parentRow.getAttribute('data-row-h'));
-                        const pNewH = getRowHeight(parentRow);
-                        const pDelta = pNewH - pOldH;
-                        
-                        if (Math.abs(pDelta) > 0.01) {{
-                            parentRow.setAttribute('data-row-h', pNewH);
-                            propagateReflow(parentRow, pDelta);
-                        }}
+                    // Recurse to parent node
+                    const parentNodeG = container.parentElement;
+                    if (parentNodeG && parentNodeG.classList.contains('node')) {{
+                        recalculateFromNode(parentNodeG);
                     }}
                 }}
             }}
         }}
+
+        // Toggle Logic with Dynamic Height Calculation (V3.0)
+        window.toggleNode = function(nodeId) {{
+            const nodeG = document.getElementById(nodeId);
+            const content = document.getElementById('content-' + nodeId);
+            const btnText = nodeG.querySelector('.toggle-btn text');
+            
+            if (!content) return; // Leaf node, can't toggle
+            
+            const isExpanding = (content.style.display === 'none');
+            
+            // Toggle visibility
+            if (isExpanding) {{
+                content.style.display = 'block';
+                btnText.textContent = '-';
+                nodeG.classList.remove('collapsed');
+            }} else {{
+                content.style.display = 'none';
+                btnText.textContent = '+';
+                nodeG.classList.add('collapsed');
+            }}
+            
+            // Recalculate this node and propagate up the tree
+            recalculateFromNode(nodeG);
+        }};
 
         searchInput.addEventListener('input', (e) => {{
             performSearch(e.target.value);
